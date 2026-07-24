@@ -1,0 +1,35 @@
+import CloudKit
+import SwiftUI
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    /// Called automatically when the roommate taps the invite link and accepts the share.
+    func application(_ application: UIApplication, userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShare.Metadata) {
+        Task {
+            try? await CloudKitManager.shared.acceptShare(metadata: cloudKitShareMetadata)
+            NotificationCenter.default.post(name: .shortyDidAcceptShare, object: nil)
+        }
+    }
+}
+
+extension Notification.Name {
+    static let shortyDidAcceptShare = Notification.Name("shortyDidAcceptShare")
+}
+
+@main
+struct ShortyApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    @State private var profileStore = ProfileStore()
+    @State private var offerStore = OfferStore()
+    @State private var scheduleStore = ScheduleStore()
+
+    var body: some Scene {
+        WindowGroup {
+            RootView()
+                .environment(profileStore)
+                .environment(offerStore)
+                .environment(scheduleStore)
+                .tint(DukeTheme.dukeBlue)
+        }
+    }
+}
