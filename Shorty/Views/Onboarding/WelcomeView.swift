@@ -68,6 +68,18 @@ struct WelcomeView: View {
                         .foregroundStyle(DukeTheme.inkMuted)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 8)
+
+                    SecondaryButton(title: "Just Explore (No iCloud Needed)", systemImage: "eye") {
+                        exploreLocally()
+                    }
+                    .disabled(myName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .opacity(myName.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1)
+
+                    Text("Click around solo on this device — nothing syncs, and it resets if you relaunch. Good for previewing the app before your CloudKit setup is ready.")
+                        .font(.shortyCaption)
+                        .foregroundStyle(DukeTheme.inkMuted)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
                 }
             }
             .padding(20)
@@ -102,6 +114,13 @@ struct WelcomeView: View {
             }
             isCreating = false
         }
+    }
+
+    private func exploreLocally() {
+        CloudKitManager.shared.enableLocalPreview()
+        let name = myName.trimmingCharacters(in: .whitespaces)
+        let roommate = roommateName.trimmingCharacters(in: .whitespaces)
+        profileStore.completeOnboarding(myName: name, roommateName: roommate.isEmpty ? "Sample Roommate" : roommate)
     }
 }
 

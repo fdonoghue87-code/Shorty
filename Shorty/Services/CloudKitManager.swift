@@ -21,6 +21,12 @@ final class CloudKitManager {
     private(set) var isReady = false
     private(set) var isOwner = false
 
+    /// True when running with no real iCloud container -- lets someone click through the
+    /// whole app on a free Apple ID (CloudKit itself requires a paid Developer Program
+    /// membership to provision) before they're ready to test the real two-device sync.
+    private(set) var isLocalPreview = false
+    private var localPreviewStorage: [CKRecord.ID: CKRecord] = [:]
+
     private var zoneID: CKRecordZone.ID?
     private var roomRecordID: CKRecord.ID?
     private var database: CKDatabase?
@@ -30,6 +36,7 @@ final class CloudKitManager {
         static let zoneOwnerName = "shorty.zoneOwnerName"
         static let roomRecordName = "shorty.roomRecordName"
         static let isOwner = "shorty.isOwner"
+        static let isLocalPreview = "shorty.isLocalPreview"
     }
 
     private init() {
@@ -40,6 +47,10 @@ final class CloudKitManager {
 
     /// Call once at launch. If we already know how to reach the shared room, reconnects silently.
     func restoreFromDefaultsIfAvailable() {
+        if defaults.bool(forKey: Keys.isLocalPreview) {
+            enableLocalPreview()
+            return
+        }
         guard let recordName = defaults.string(forKey: Keys.roomRecordName) else { return }
         let owner = defaults.bool(forKey: Keys.isOwner)
         isOwner = owner
@@ -114,11 +125,26 @@ final class CloudKitManager {
         persist(zoneOwnerName: rootRecordID.zoneID.ownerName, roomRecordName: rootRecordID.recordName, owner: false)
     }
 
+    /// Skips real CloudKit entirely: everything lives in memory on this one device, so
+    /// there's nobody to sync with, but every screen in the app works right away.
+    func enableLocalPreview() {
+        let zone = CKRecordZone.ID(zoneName: Self.zoneName, ownerName: "local-preview")
+        isLocalPreview = true
+        isOwner = true
+        zoneID = zone
+        roomRecordID = CKRecord.ID(recordName: "local-preview-room", zoneID: zone)
+        isReady = true
+        defaults.set(true, forKey: Keys.isLocalPreview)
+    }
+
     func forgetRoom() {
         defaults.removeObject(forKey: Keys.roomRecordName)
         defaults.removeObject(forKey: Keys.zoneOwnerName)
         defaults.removeObject(forKey: Keys.isOwner)
+        defaults.removeObject(forKey: Keys.isLocalPreview)
         isReady = false
+        isLocalPreview = false
+        localPreviewStorage.removeAll()
         zoneID = nil
         roomRecordID = nil
         database = nil
@@ -150,6 +176,10 @@ final class CloudKitManager {
     }
 
     func fetchAllRecords(ofType type: String) async throws -> [CKRecord] {
+        if isLocalPreview {
+            return localPreviewStorage.values.filter { $0.recordType == type }
+        }
+
         let db = try currentDatabase()
         let query = CKQuery(recordType: type, predicate: NSPredicate(value: true))
         var results: [CKRecord] = []
@@ -174,10 +204,18 @@ final class CloudKitManager {
     }
 
     func save(_ record: CKRecord) async throws {
+        if isLocalPreview {
+            localPreviewStorage[record.recordID] = record
+            return
+        }
         _ = try await currentDatabase().save(record)
     }
 
     func delete(_ recordID: CKRecord.ID) async throws {
+        if isLocalPreview {
+            localPreviewStorage.removeValue(forKey: recordID)
+            return
+        }
         _ = try await currentDatabase().deleteRecord(withID: recordID)
     }
 }

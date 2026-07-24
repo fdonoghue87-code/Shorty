@@ -25,7 +25,15 @@ Both people enter their own name locally on first launch; that's only used to la
 
 This intentionally skips push notifications for phase one — the app polls every ~12 seconds while open (`OfferStore.startPolling()`) and refreshes on pull-to-refresh. Real-time push via `CKQuerySubscription` is a natural phase-1.5 addition once the core flow is validated between the two of you.
 
-## Opening the project
+## Trying it out for free, before any Apple Developer Program membership
+
+CloudKit — the thing that syncs offers between two people — is gated behind Apple's **paid** Developer Program ($99/year); a free "Personal Team" account can't provision it, regardless of whether you're testing via cable or TestFlight. That's a real wall, but it only blocks the cross-device sync, not the app itself.
+
+To click through every screen for free first: open the app, on the welcome screen enter your name (roommate name is optional here) and tap **Just Explore (No iCloud Needed)**. This calls `CloudKitManager.enableLocalPreview()`, which quietly serves every read/write from an in-memory store instead of the network — so offers, the countdown timer, and the schedule editor all work solo, on one device, with a free Apple ID. Nothing syncs to anyone, and the data resets each time you relaunch (by design — it's meant to be thrown away once you're ready for the real thing).
+
+When you're ready to test the actual two-person flow, enroll in the paid Developer Program and follow the steps below — the same $99 carries you through TestFlight and eventual App Store publishing too.
+
+## Opening the project for real (two-device) testing
 
 1. Open `Shorty.xcodeproj` in Xcode (15.4+, targeting iOS 17+).
 2. Select the **Shorty** target → **Signing & Capabilities**:
@@ -33,7 +41,7 @@ This intentionally skips push notifications for phase one — the app polls ever
    - Confirm the **iCloud** capability is present with **CloudKit** checked and a container assigned (the entitlements file already requests `iCloud.$(CFBundleIdentifier)`; Xcode will offer to create that container automatically the first time you build).
    - Change the bundle identifier (`com.fdonoghue.shorty` placeholder in the project build settings) to one under your own team if needed.
 3. Build to a real device (CloudKit sharing between two people needs two real iCloud accounts — the simulator alone can't fully exercise the invite/accept flow).
-4. Add a real `AppIcon` image (currently a placeholder 1024×1024 slot with no image) before submitting to TestFlight.
+4. Before submitting to TestFlight, swap the placeholder `AppIcon-1024.png` (a plain Duke Blue door glyph) for real branding.
 
 ## Testing with your roommate
 
