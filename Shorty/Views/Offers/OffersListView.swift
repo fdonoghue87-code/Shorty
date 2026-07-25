@@ -54,7 +54,7 @@ struct OffersListView: View {
             .listStyle(.plain)
             .shortyBackground()
             .scrollContentBackground(.hidden)
-            .navigationTitle("Offers")
+            .shortyHeader("Offers")
             .refreshable { await offerStore.refresh() }
             .sheet(item: $selectedOffer) { offer in
                 OfferDetailView(offer: offer)

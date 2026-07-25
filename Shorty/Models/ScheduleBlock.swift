@@ -16,6 +16,20 @@ enum Weekday: Int, CaseIterable, Codable, Identifiable {
         case .saturday: return "Sat"
         }
     }
+
+    /// Single-letter registrar-style code (the "MWF" / "TR" convention used on most
+    /// class schedules), used both to label detected schedule blocks and to parse them.
+    var code: String {
+        switch self {
+        case .sunday: return "U"
+        case .monday: return "M"
+        case .tuesday: return "T"
+        case .wednesday: return "W"
+        case .thursday: return "R"
+        case .friday: return "F"
+        case .saturday: return "S"
+        }
+    }
 }
 
 /// A block of time a roommate is predictably out (class, practice, work) or predictably

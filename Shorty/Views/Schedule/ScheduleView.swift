@@ -5,6 +5,8 @@ struct ScheduleView: View {
     @Environment(ProfileStore.self) private var profileStore
 
     @State private var showingAdd = false
+    @State private var showingImport = false
+    @State private var selectedDate = Date()
 
     var body: some View {
         NavigationStack {
@@ -15,6 +17,25 @@ struct ScheduleView: View {
                         .foregroundStyle(DukeTheme.inkMuted)
                 }
                 .listRowSeparator(.hidden)
+
+                Section {
+                    DatePicker("Selected day", selection: $selectedDate, displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .tint(DukeTheme.dukeBlue)
+
+                    let dayBlocks = scheduleStore.status(at: selectedDate)
+                    if dayBlocks.isEmpty {
+                        Text("Nothing scheduled on \(selectedDateLabel).")
+                            .font(.shortyCaption)
+                            .foregroundStyle(DukeTheme.inkMuted)
+                    } else {
+                        ForEach(dayBlocks) { block in
+                            ScheduleBlockDetailRow(block: block)
+                        }
+                    }
+                } header: {
+                    Text(selectedDateLabel)
+                }
 
                 ForEach(Weekday.allCases) { day in
                     let dayBlocks = blocks(for: day)
@@ -58,11 +79,20 @@ struct ScheduleView: View {
             .listStyle(.plain)
             .shortyBackground()
             .scrollContentBackground(.hidden)
-            .navigationTitle("Schedule")
+            .shortyHeader("Schedule")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showingAdd = true
+                    Menu {
+                        Button {
+                            showingAdd = true
+                        } label: {
+                            Label("Add Manually", systemImage: "pencil")
+                        }
+                        Button {
+                            showingImport = true
+                        } label: {
+                            Label("Import from Photo", systemImage: "camera.viewfinder")
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -72,7 +102,16 @@ struct ScheduleView: View {
             .sheet(isPresented: $showingAdd) {
                 AddScheduleBlockView()
             }
+            .sheet(isPresented: $showingImport) {
+                ImportScheduleView()
+            }
         }
+    }
+
+    private var selectedDateLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        return formatter.string(from: selectedDate)
     }
 
     private func blocks(for day: Weekday) -> [ScheduleBlock] {

@@ -10,8 +10,8 @@ A native iOS app (SwiftUI, iOS 17+):
 
 - **Room** tab — live available/occupied status with a countdown timer, plus today's schedule at a glance.
 - **Offers** tab — send an offer (purpose: study / call / intimacy / alone time / other, a time window, and an optional price), and accept, decline, or counter-propose different terms on offers you receive.
-- **Schedule** tab — post recurring "away" or "in the room" blocks (like a class schedule) so your roommate can see when the room is naturally free, before they even need to ask.
-- Duke Blue (`#001A57`) color theme throughout.
+- **Schedule** tab — post recurring "away" or "in the room" blocks (like a class schedule) so your roommate can see when the room is naturally free, before they even need to ask. Includes a graphical calendar to jump to any day, plus a **photo import**: snap or pick a photo of a printed/on-screen class schedule and Shorty (via Apple's Vision text recognition) tries to pull out day/time blocks automatically. Detected entries always land in an editable review list before saving — OCR on free-form schedule layouts is inherently best-effort, so nothing saves without a look first. Saved blocks sync to both roommates like any other schedule block.
+- Duke Blue (`#001A57`) color theme throughout, with bold centered headers on each tab.
 
 ## How the sync works
 
@@ -48,6 +48,12 @@ When you're ready to test the actual two-person flow, enroll in the paid Develop
 1. You create the room and send the invite link to your roommate directly (text it to them outside the app, however you'd normally send a link).
 2. They tap it, accept, and enter their name.
 3. From there, send each other offers and see them sync.
+
+## After pulling an update to this project
+
+Because `Shorty.xcodeproj`'s project file is regenerated (not hand-edited) whenever files are added, **your Signing & Capabilities Team selection gets reset to blank each time you pull a change that adds new files.** After `git pull`, always re-check Shorty target → Signing & Capabilities → Team before building.
+
+The photo-import feature also needs a camera permission string, which is already wired into the project's Info.plist settings (`NSCameraUsageDescription`) — no extra setup needed, but the first time you tap "Take Photo" on a real device, iOS will show the permission prompt using that text.
 
 ## Honesty about what's been verified
 

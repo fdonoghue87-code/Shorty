@@ -50,7 +50,7 @@ struct HomeView: View {
                 await scheduleStore.refresh()
             }
             .shortyBackground()
-            .navigationTitle("Shorty")
+            .shortyHeader("Shorty")
             .sheet(isPresented: $showingNewOffer) {
                 NewOfferView()
             }

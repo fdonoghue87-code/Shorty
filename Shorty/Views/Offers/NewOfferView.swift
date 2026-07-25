@@ -35,11 +35,22 @@ struct NewOfferView: View {
 
                 Section("When") {
                     DatePicker("Starts", selection: $start, in: Date()..., displayedComponents: [.date, .hourAndMinute])
-                    Picker("How long", selection: $duration) {
+
+                    Text("How long")
+                        .font(.shortyCaption)
+                        .foregroundStyle(DukeTheme.inkMuted)
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(durations, id: \.self) { value in
-                            Text(label(for: value)).tag(value)
+                            Button {
+                                duration = value
+                            } label: {
+                                DurationChip(label: label(for: value), isSelected: duration == value)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
+                    .listRowInsets(EdgeInsets())
+                    .padding(.vertical, 4)
                 }
 
                 Section("Sweeten the deal (optional)") {
@@ -87,5 +98,20 @@ struct NewOfferView: View {
             isSending = false
             dismiss()
         }
+    }
+}
+
+private struct DurationChip: View {
+    let label: String
+    var isSelected: Bool = false
+
+    var body: some View {
+        Text(label)
+            .font(.shortyHeadline)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .foregroundStyle(isSelected ? .white : DukeTheme.dukeBlue)
+            .background(isSelected ? DukeTheme.dukeBlue : DukeTheme.dukeBlue.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
     }
 }

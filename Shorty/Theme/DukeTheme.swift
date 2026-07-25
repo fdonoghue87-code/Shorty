@@ -58,4 +58,18 @@ extension View {
     func shortyBackground() -> some View {
         modifier(ShortyBackground())
     }
+
+    /// Bold, centered screen title sitting in the compact nav bar rather than a tall
+    /// left-aligned large title.
+    func shortyHeader(_ title: String) -> some View {
+        self
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(title)
+                        .font(.system(.title3, design: .rounded).weight(.bold))
+                        .foregroundStyle(DukeTheme.ink)
+                }
+            }
+    }
 }
