@@ -14,6 +14,7 @@ final class CloudKitManager {
     static let roomRecordType = "Room"
     static let offerRecordType = "Offer"
     static let scheduleRecordType = "ScheduleBlock"
+    static let standingArrangementRecordType = "StandingArrangement"
     static let zoneName = "SharedRoomZone"
 
     /// Lazy (and excluded from Observation tracking, since @Observable can't apply its

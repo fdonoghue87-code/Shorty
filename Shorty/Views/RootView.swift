@@ -22,7 +22,7 @@ struct MainTabView: View {
                 .tabItem { Label("Room", systemImage: "door.left.hand.closed") }
 
             OffersListView()
-                .tabItem { Label("Offers", systemImage: "envelope") }
+                .tabItem { Label("Room Time", systemImage: "envelope") }
 
             ScheduleView()
                 .tabItem { Label("Schedule", systemImage: "calendar") }

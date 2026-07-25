@@ -22,6 +22,7 @@ struct ShortyApp: App {
     @State private var profileStore = ProfileStore()
     @State private var offerStore = OfferStore()
     @State private var scheduleStore = ScheduleStore()
+    @State private var standingStore = StandingArrangementStore()
 
     var body: some Scene {
         WindowGroup {
@@ -29,7 +30,11 @@ struct ShortyApp: App {
                 .environment(profileStore)
                 .environment(offerStore)
                 .environment(scheduleStore)
+                .environment(standingStore)
                 .tint(DukeTheme.dukeBlue)
+                .task {
+                    NotificationService.requestAuthorizationIfNeeded()
+                }
         }
     }
 }

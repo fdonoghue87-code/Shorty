@@ -106,6 +106,13 @@ struct OfferDetailView: View {
     private var counterForm: some View {
         VStack(spacing: 14) {
             ShortyCard {
+                Text("Quick adjust").font(.shortyCaption).foregroundStyle(DukeTheme.inkMuted)
+                HStack(spacing: 8) {
+                    quickAdjustButton("+15 min") { applyQuickAdjust(15 * 60) }
+                    quickAdjustButton("+1 hour") { applyQuickAdjust(60 * 60) }
+                    quickAdjustButton("Tomorrow") { applyTomorrowSameTime() }
+                }
+                Divider()
                 DatePicker("New start", selection: $counterStart, displayedComponents: [.date, .hourAndMinute])
                 DatePicker("New end", selection: $counterEnd, in: counterStart..., displayedComponents: [.date, .hourAndMinute])
                 Stepper(value: $counterPrice, in: 0...100, step: 1) {
@@ -122,6 +129,32 @@ struct OfferDetailView: View {
                 isCountering = false
             }
         }
+    }
+
+    private func quickAdjustButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.shortyCaption)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .foregroundStyle(DukeTheme.dukeBlue)
+                .background(DukeTheme.dukeBlue.opacity(0.08))
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func applyQuickAdjust(_ shift: TimeInterval) {
+        let duration = counterEnd.timeIntervalSince(counterStart)
+        counterStart = counterStart.addingTimeInterval(shift)
+        counterEnd = counterStart.addingTimeInterval(duration)
+    }
+
+    private func applyTomorrowSameTime() {
+        let duration = counterEnd.timeIntervalSince(counterStart)
+        guard let newStart = Calendar.current.date(byAdding: .day, value: 1, to: counterStart) else { return }
+        counterStart = newStart
+        counterEnd = newStart.addingTimeInterval(duration)
     }
 
     private func respond(_ action: @escaping () async -> Void) {

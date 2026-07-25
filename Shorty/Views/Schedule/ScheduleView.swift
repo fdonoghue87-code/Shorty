@@ -3,20 +3,43 @@ import SwiftUI
 struct ScheduleView: View {
     @Environment(ScheduleStore.self) private var scheduleStore
     @Environment(ProfileStore.self) private var profileStore
+    @Environment(StandingArrangementStore.self) private var standingStore
 
     @State private var showingAdd = false
     @State private var showingImport = false
+    @State private var showingProposeStanding = false
     @State private var selectedDate = Date()
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    Text("Recurring blocks help you both see, at a glance, when the room is naturally free or spoken for — so a rental request is only needed when it's actually needed.")
+                    Text("Recurring blocks help you both see, at a glance, when the room is naturally free or spoken for — so a request is only needed when it's actually needed.")
                         .font(.shortyCaption)
                         .foregroundStyle(DukeTheme.inkMuted)
                 }
                 .listRowSeparator(.hidden)
+
+                let standingToShow = standingStore.pending + standingStore.active
+                if !standingToShow.isEmpty {
+                    Section {
+                        ForEach(standingToShow) { arrangement in
+                            StandingArrangementRow(
+                                arrangement: arrangement,
+                                myName: profileStore.profile.myName,
+                                onAccept: { Task { await standingStore.accept(arrangement) } },
+                                onDecline: { Task { await standingStore.decline(arrangement) } },
+                                onCancel: { Task { await standingStore.cancel(arrangement) } }
+                            )
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                        }
+                    } header: {
+                        Text("Standing Arrangements")
+                    } footer: {
+                        Text("Approved once, these repeat automatically — no need to ask again.")
+                    }
+                }
 
                 Section {
                     DatePicker("Selected day", selection: $selectedDate, displayedComponents: .date)
@@ -93,17 +116,31 @@ struct ScheduleView: View {
                         } label: {
                             Label("Import from Photo", systemImage: "camera.viewfinder")
                         }
+                        Button {
+                            showingProposeStanding = true
+                        } label: {
+                            Label("Propose Standing Time", systemImage: "repeat")
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
-            .refreshable { await scheduleStore.refresh() }
+            .refreshable {
+                await scheduleStore.refresh()
+                await standingStore.refresh()
+            }
+            .task {
+                await standingStore.refresh()
+            }
             .sheet(isPresented: $showingAdd) {
                 AddScheduleBlockView()
             }
             .sheet(isPresented: $showingImport) {
                 ImportScheduleView()
+            }
+            .sheet(isPresented: $showingProposeStanding) {
+                ProposeStandingArrangementView()
             }
         }
     }
@@ -158,6 +195,62 @@ struct ScheduleBlockDetailRow: View {
     private var timeRange: String {
         guard let start = block.startTime, let end = block.endTime else { return "" }
         return "\(time(start)) – \(time(end))"
+    }
+
+    private func time(_ components: DateComponents) -> String {
+        var calendarComponents = DateComponents()
+        calendarComponents.hour = components.hour
+        calendarComponents.minute = components.minute
+        let date = Calendar.current.date(from: calendarComponents) ?? Date()
+        return DateFormatter.localizedString(from: date, dateStyle: .none, timeStyle: .short)
+    }
+}
+
+struct StandingArrangementRow: View {
+    let arrangement: StandingArrangement
+    let myName: String
+    var onAccept: (() -> Void)?
+    var onDecline: (() -> Void)?
+    var onCancel: (() -> Void)?
+
+    var body: some View {
+        ShortyCard {
+            HStack {
+                Image(systemName: "repeat")
+                    .foregroundStyle(DukeTheme.dukeBlue)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(arrangement.title.isEmpty ? arrangement.purpose.label : arrangement.title)
+                        .font(.shortyHeadline)
+                    Text("\(daysLabel) · \(timeRange) · \(arrangement.ownerName)")
+                        .font(.shortyCaption)
+                        .foregroundStyle(DukeTheme.inkMuted)
+                }
+                Spacer()
+            }
+
+            if arrangement.status == .pending {
+                if arrangement.otherName == myName {
+                    HStack(spacing: 10) {
+                        PrimaryButton(title: "Accept", systemImage: "checkmark") { onAccept?() }
+                        SecondaryButton(title: "Decline", systemImage: "xmark") { onDecline?() }
+                    }
+                } else {
+                    Text("Waiting for \(arrangement.otherName) to accept")
+                        .font(.shortyCaption)
+                        .foregroundStyle(DukeTheme.pending)
+                }
+            } else if arrangement.status == .active, arrangement.ownerName == myName {
+                SecondaryButton(title: "Cancel Standing Time", systemImage: "xmark.circle") { onCancel?() }
+            }
+        }
+    }
+
+    private var daysLabel: String {
+        Weekday.allCases.filter { arrangement.weekdays.contains($0) }.map(\.code).joined()
+    }
+
+    private var timeRange: String {
+        "\(time(arrangement.startTime)) – \(time(arrangement.endTime))"
     }
 
     private func time(_ components: DateComponents) -> String {

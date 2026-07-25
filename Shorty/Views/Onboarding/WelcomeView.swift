@@ -27,7 +27,7 @@ struct WelcomeView: View {
                         .foregroundStyle(DukeTheme.dukeBlue)
                     Text(cloudIsReady
                          ? "You're connected. Just need your names."
-                         : "Rent the room from your roommate, minus the awkward ask.")
+                         : "Get the room to yourself for a while, minus the awkward ask.")
                         .font(.shortyBody)
                         .foregroundStyle(DukeTheme.inkMuted)
                         .multilineTextAlignment(.center)

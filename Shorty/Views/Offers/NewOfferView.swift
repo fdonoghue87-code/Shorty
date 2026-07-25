@@ -63,7 +63,7 @@ struct NewOfferView: View {
                     TextField("Add a note for \(profileStore.profile.roommateName ?? "your roommate")", text: $note, axis: .vertical)
                 }
             }
-            .navigationTitle("New Offer")
+            .navigationTitle("Request Room Time")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

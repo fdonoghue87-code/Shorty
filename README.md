@@ -8,9 +8,10 @@ Phase one is built for exactly two people (you and one roommate). No accounts, n
 
 A native iOS app (SwiftUI, iOS 17+):
 
-- **Room** tab — live available/occupied status with a countdown timer, plus today's schedule at a glance.
-- **Offers** tab — send an offer (purpose: study / call / intimacy / alone time / other, a time window, and an optional price), and accept, decline, or counter-propose different terms on offers you receive.
-- **Schedule** tab — post recurring "away" or "in the room" blocks (like a class schedule) so your roommate can see when the room is naturally free, before they even need to ask. Includes a graphical calendar to jump to any day, plus a **photo import**: snap or pick a photo of a printed/on-screen class schedule and Shorty (via Apple's Vision text recognition) tries to pull out day/time blocks automatically. Detected entries always land in an editable review list before saving — OCR on free-form schedule layouts is inherently best-effort, so nothing saves without a look first. Saved blocks sync to both roommates like any other schedule block.
+- **Room** tab — live available/occupied status with a countdown timer, one-tap quick requests (15/30/60 min, no form to fill out) alongside a custom request option, a reciprocity card showing how room time has balanced out between you two, and today's schedule at a glance.
+- **Room Time** tab (formerly "Offers") — send a request (purpose: study / call / intimacy / alone time / **personal time** [no reason given] / other, a time window, and an optional price), and accept, decline, or counter-propose different terms — including canned "+15 min / +1 hour / tomorrow" quick-adjust buttons so countering doesn't require manually picking new times.
+- **Schedule** tab — post recurring "away" or "in the room" blocks (like a class schedule) so your roommate can see when the room is naturally free, before they even need to ask. Includes a graphical calendar to jump to any day, a **photo import** (snap or pick a photo of a class schedule and Shorty's on-device Vision text recognition tries to pull out day/time blocks automatically, always landing in an editable review list before saving), and **standing arrangements** — a recurring slot that only needs approving once and then repeats automatically, so the ask disappears entirely for predictable time.
+- Local reminders (5-minutes-left / time's-up) for whoever currently has the room, so nobody has to babysit a clock.
 - Duke Blue (`#001A57`) color theme throughout, with bold centered headers on each tab.
 
 ## How the sync works
@@ -61,6 +62,6 @@ This was built in an environment without Xcode or a Swift toolchain, so the code
 
 ## Roadmap beyond phase one
 
-- Push notifications via `CKQuerySubscription` instead of polling.
+- Push notifications via `CKQuerySubscription` instead of polling — this also unlocks a real cross-device Live Activity / Lock Screen countdown (visible to *both* roommates, not just whoever's in the room). Both push notifications and a Live Activity's widget extension target need the paid Apple Developer Program either way, so this is a natural pairing to do together once that's in place. Local session-end reminders exist today as a lighter, no-paid-account-needed stand-in.
 - Support for more than two roommates per room.
 - Public rooms / accounts so any two students (or any two people sharing a room) can pair up without you manually distributing invite links — this is the path to the App Store release across universities.
