@@ -1,5 +1,6 @@
 import CloudKit
 import Foundation
+import Observation
 
 /// Owns the CloudKit plumbing that lets exactly two roommates read and write the same
 /// "Room" record hierarchy: one roommate creates the Room and shares it (via CKShare,
@@ -15,9 +16,12 @@ final class CloudKitManager {
     static let scheduleRecordType = "ScheduleBlock"
     static let zoneName = "SharedRoomZone"
 
-    /// Lazy because CKContainer.default() checks the app's iCloud entitlement the instant
-    /// it's created and crashes immediately if it's missing -- local-preview mode must
-    /// never touch this at all, so it can't be created eagerly at singleton init time.
+    /// Lazy (and excluded from Observation tracking, since @Observable can't apply its
+    /// tracking transform to a lazy property) because CKContainer.default() checks the
+    /// app's iCloud entitlement the instant it's created and crashes immediately if it's
+    /// missing -- local-preview mode must never touch this at all, so it can't be created
+    /// eagerly at singleton init time.
+    @ObservationIgnored
     private(set) lazy var container = CKContainer.default()
 
     /// True once this device has a working room reference (either created or accepted).
