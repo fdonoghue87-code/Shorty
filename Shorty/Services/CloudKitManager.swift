@@ -15,7 +15,10 @@ final class CloudKitManager {
     static let scheduleRecordType = "ScheduleBlock"
     static let zoneName = "SharedRoomZone"
 
-    private(set) var container = CKContainer.default()
+    /// Lazy because CKContainer.default() checks the app's iCloud entitlement the instant
+    /// it's created and crashes immediately if it's missing -- local-preview mode must
+    /// never touch this at all, so it can't be created eagerly at singleton init time.
+    private(set) lazy var container = CKContainer.default()
 
     /// True once this device has a working room reference (either created or accepted).
     private(set) var isReady = false
