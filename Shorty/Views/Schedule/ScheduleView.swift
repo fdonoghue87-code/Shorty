@@ -20,6 +20,20 @@ struct ScheduleView: View {
                 }
                 .listRowSeparator(.hidden)
 
+                Section {
+                    if todaysBlocks.isEmpty {
+                        Text("Nothing scheduled today.")
+                            .font(.shortyCaption)
+                            .foregroundStyle(DukeTheme.inkMuted)
+                    } else {
+                        ForEach(todaysBlocks) { block in
+                            ScheduleBlockDetailRow(block: block)
+                        }
+                    }
+                } header: {
+                    Text("Today")
+                }
+
                 let standingToShow = standingStore.pending + standingStore.active
                 if !standingToShow.isEmpty {
                     Section {
@@ -39,25 +53,6 @@ struct ScheduleView: View {
                     } footer: {
                         Text("Approved once, these repeat automatically — no need to ask again.")
                     }
-                }
-
-                Section {
-                    DatePicker("Selected day", selection: $selectedDate, displayedComponents: .date)
-                        .datePickerStyle(.graphical)
-                        .tint(DukeTheme.dukeBlue)
-
-                    let dayBlocks = scheduleStore.status(at: selectedDate)
-                    if dayBlocks.isEmpty {
-                        Text("Nothing scheduled on \(selectedDateLabel).")
-                            .font(.shortyCaption)
-                            .foregroundStyle(DukeTheme.inkMuted)
-                    } else {
-                        ForEach(dayBlocks) { block in
-                            ScheduleBlockDetailRow(block: block)
-                        }
-                    }
-                } header: {
-                    Text(selectedDateLabel)
                 }
 
                 ForEach(Weekday.allCases) { day in
@@ -97,6 +92,27 @@ struct ScheduleView: View {
                 if scheduleStore.blocks.isEmpty {
                     EmptyStateView(systemImage: "calendar.badge.plus", title: "No schedule yet", message: "Add your class times or predictable in-room hours so your roommate always knows the lay of the week.")
                         .listRowSeparator(.hidden)
+                }
+
+                Section {
+                    DatePicker("Selected day", selection: $selectedDate, displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .tint(DukeTheme.dukeBlue)
+
+                    let dayBlocks = scheduleStore.status(at: selectedDate)
+                    if dayBlocks.isEmpty {
+                        Text("Nothing scheduled on \(selectedDateLabel).")
+                            .font(.shortyCaption)
+                            .foregroundStyle(DukeTheme.inkMuted)
+                    } else {
+                        ForEach(dayBlocks) { block in
+                            ScheduleBlockDetailRow(block: block)
+                        }
+                    }
+                } header: {
+                    Text("Browse a Different Day")
+                } footer: {
+                    Text(selectedDateLabel)
                 }
             }
             .listStyle(.plain)
@@ -144,6 +160,10 @@ struct ScheduleView: View {
                 ProposeStandingArrangementView()
             }
         }
+    }
+
+    private var todaysBlocks: [ScheduleBlock] {
+        scheduleStore.status(at: Date())
     }
 
     private var selectedDateLabel: String {
