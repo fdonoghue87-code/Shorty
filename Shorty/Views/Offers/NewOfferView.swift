@@ -29,8 +29,7 @@ struct NewOfferView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .listRowInsets(EdgeInsets())
-                    .padding(.vertical, 8)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
 
                 Section("When") {
@@ -49,8 +48,7 @@ struct NewOfferView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .listRowInsets(EdgeInsets())
-                    .padding(.vertical, 4)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
                 }
 
                 Section("Sweeten the deal (optional)") {
