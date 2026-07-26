@@ -35,6 +35,11 @@ struct AddScheduleBlockView: View {
                     }
                     DatePicker("Starts", selection: $startTime, displayedComponents: .hourAndMinute)
                     DatePicker("Ends", selection: $endTime, displayedComponents: .hourAndMinute)
+                    if endTime <= startTime {
+                        Text("End time needs to be after the start time.")
+                            .font(.shortyCaption)
+                            .foregroundStyle(DukeTheme.occupied)
+                    }
                 }
             }
             .navigationTitle("Add to Schedule")
@@ -45,7 +50,7 @@ struct AddScheduleBlockView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isSaving ? "Saving…" : "Save") { save() }
-                        .disabled(isSaving || (isRecurring && selectedDays.isEmpty))
+                        .disabled(isSaving || (isRecurring && selectedDays.isEmpty) || endTime <= startTime)
                 }
             }
         }
@@ -92,6 +97,8 @@ private struct WeekdaySelector: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(day.fullName)
+                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
             }
         }
     }

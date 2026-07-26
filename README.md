@@ -11,8 +11,9 @@ A native iOS app (SwiftUI, iOS 17+):
 - **Room** tab — live available/occupied status with a countdown timer, one-tap quick requests (15/30/60 min, no form to fill out) alongside a custom request option, a reciprocity card showing how room time has balanced out between you two, and today's schedule at a glance.
 - **Room Time** tab (formerly "Offers") — send a request (purpose: study / call / intimacy / alone time / **personal time** [no reason given] / other, a time window, and an optional price), and accept, decline, or counter-propose different terms — including canned "+15 min / +1 hour / tomorrow" quick-adjust buttons so countering doesn't require manually picking new times.
 - **Schedule** tab — post recurring "away" or "in the room" blocks (like a class schedule) so your roommate can see when the room is naturally free, before they even need to ask. Includes a graphical calendar to jump to any day, a **photo import** (snap or pick a photo of a class schedule and Shorty's on-device Vision text recognition tries to pull out day/time blocks automatically, always landing in an editable review list before saving), and **standing arrangements** — a recurring slot that only needs approving once and then repeats automatically, so the ask disappears entirely for predictable time.
+- **Settings** tab — see your name/roommate, jump to system notification settings, a "How Shorty Works" refresher (also shown once automatically after onboarding), and leave the room.
 - Local reminders (5-minutes-left / time's-up) for whoever currently has the room, so nobody has to babysit a clock.
-- Duke Blue (`#001A57`) color theme throughout, with bold centered headers on each tab.
+- Duke Blue (`#001A57`) color theme throughout, with bold centered headers on each tab, a real app icon (a door with a clock for a handle), and VoiceOver labels on icon-only controls.
 
 ## How the sync works
 

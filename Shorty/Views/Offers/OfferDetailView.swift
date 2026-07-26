@@ -113,7 +113,7 @@ struct OfferDetailView: View {
                     quickAdjustButton("Tomorrow") { applyTomorrowSameTime() }
                 }
                 Divider()
-                DatePicker("New start", selection: $counterStart, displayedComponents: [.date, .hourAndMinute])
+                DatePicker("New start", selection: $counterStart, in: Date()..., displayedComponents: [.date, .hourAndMinute])
                 DatePicker("New end", selection: $counterEnd, in: counterStart..., displayedComponents: [.date, .hourAndMinute])
                 Stepper(value: $counterPrice, in: 0...100, step: 1) {
                     Text("Price: $\(Int(counterPrice))")

@@ -16,6 +16,9 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
+    @Environment(ProfileStore.self) private var profileStore
+    @State private var showingHowItWorks = false
+
     var body: some View {
         TabView {
             HomeView()
@@ -26,7 +29,20 @@ struct MainTabView: View {
 
             ScheduleView()
                 .tabItem { Label("Schedule", systemImage: "calendar") }
+
+            SettingsView()
+                .tabItem { Label("Settings", systemImage: "gearshape") }
         }
         .tint(DukeTheme.dukeBlue)
+        .task {
+            if !profileStore.profile.hasSeenHowItWorks {
+                showingHowItWorks = true
+            }
+        }
+        .sheet(isPresented: $showingHowItWorks, onDismiss: {
+            profileStore.profile.hasSeenHowItWorks = true
+        }) {
+            HowItWorksView()
+        }
     }
 }

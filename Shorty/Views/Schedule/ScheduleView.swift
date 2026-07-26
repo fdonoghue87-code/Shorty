@@ -124,6 +124,7 @@ struct ScheduleView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add to schedule")
                 }
             }
             .refreshable {
@@ -155,20 +156,6 @@ struct ScheduleView: View {
         scheduleStore.blocks
             .filter { $0.date == nil && $0.recurringWeekdays.contains(day) }
             .sorted { ($0.startTime?.hour ?? 0, $0.startTime?.minute ?? 0) < ($1.startTime?.hour ?? 0, $1.startTime?.minute ?? 0) }
-    }
-}
-
-private extension Weekday {
-    var fullName: String {
-        switch self {
-        case .sunday: return "Sunday"
-        case .monday: return "Monday"
-        case .tuesday: return "Tuesday"
-        case .wednesday: return "Wednesday"
-        case .thursday: return "Thursday"
-        case .friday: return "Friday"
-        case .saturday: return "Saturday"
-        }
     }
 }
 

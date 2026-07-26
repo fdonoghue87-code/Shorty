@@ -47,6 +47,11 @@ struct ProposeStandingArrangementView: View {
                 Section("Time") {
                     DatePicker("Starts", selection: $startTime, displayedComponents: .hourAndMinute)
                     DatePicker("Ends", selection: $endTime, displayedComponents: .hourAndMinute)
+                    if endTime <= startTime {
+                        Text("End time needs to be after the start time.")
+                            .font(.shortyCaption)
+                            .foregroundStyle(DukeTheme.occupied)
+                    }
                 }
             }
             .navigationTitle("Propose Standing Time")
@@ -57,7 +62,7 @@ struct ProposeStandingArrangementView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isSaving ? "Sending…" : "Send") { send() }
-                        .disabled(isSaving || selectedDays.isEmpty)
+                        .disabled(isSaving || selectedDays.isEmpty || endTime <= startTime)
                 }
             }
         }
@@ -99,6 +104,8 @@ private struct ProposalWeekdaySelector: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(day.fullName)
+                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
             }
         }
     }

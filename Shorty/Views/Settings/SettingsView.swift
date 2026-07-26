@@ -1,0 +1,73 @@
+import SwiftUI
+import UIKit
+
+struct SettingsView: View {
+    @Environment(ProfileStore.self) private var profileStore
+
+    @State private var showingLeaveConfirmation = false
+    @State private var showingHowItWorks = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Your Info") {
+                    LabeledContent("Your name", value: profileStore.profile.myName)
+                    LabeledContent("Roommate", value: profileStore.profile.roommateName ?? "—")
+                }
+
+                Section {
+                    Button {
+                        showingHowItWorks = true
+                    } label: {
+                        Label("How Shorty Works", systemImage: "questionmark.circle")
+                    }
+                    Button {
+                        openNotificationSettings()
+                    } label: {
+                        Label("Notification Settings", systemImage: "bell")
+                    }
+                }
+
+                Section {
+                    Button(role: .destructive) {
+                        showingLeaveConfirmation = true
+                    } label: {
+                        Label("Leave This Room", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                } footer: {
+                    Text(CloudKitManager.shared.isLocalPreview
+                         ? "You're in local preview mode — nothing is synced yet. Leaving just resets this device."
+                         : "This disconnects this device from the shared room. Your roommate keeps their own access.")
+                }
+
+                Section {
+                    LabeledContent("Version", value: appVersion)
+                }
+            }
+            .shortyHeader("Settings")
+            .confirmationDialog("Leave this room?", isPresented: $showingLeaveConfirmation, titleVisibility: .visible) {
+                Button("Leave", role: .destructive) { leaveRoom() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("You'll need to create a new room or accept a new invite to use Shorty again.")
+            }
+            .sheet(isPresented: $showingHowItWorks) {
+                HowItWorksView()
+            }
+        }
+    }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+    }
+
+    private func openNotificationSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+    }
+
+    private func leaveRoom() {
+        CloudKitManager.shared.forgetRoom()
+        profileStore.reset()
+    }
+}

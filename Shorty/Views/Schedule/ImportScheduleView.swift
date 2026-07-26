@@ -205,6 +205,7 @@ private struct DetectedEntryRow: View {
                     .foregroundStyle(entry.isIncluded ? DukeTheme.dukeBlue : DukeTheme.inkMuted)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(entry.isIncluded ? "Included, tap to exclude" : "Excluded, tap to include")
 
             VStack(alignment: .leading, spacing: 4) {
                 TextField("Title", text: $entry.title)
