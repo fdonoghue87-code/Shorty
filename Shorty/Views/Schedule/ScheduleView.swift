@@ -4,11 +4,28 @@ struct ScheduleView: View {
     @Environment(ScheduleStore.self) private var scheduleStore
     @Environment(ProfileStore.self) private var profileStore
     @Environment(StandingArrangementStore.self) private var standingStore
+    @Environment(SubscriptionStore.self) private var subscriptionStore
 
     @State private var showingAdd = false
     @State private var showingImport = false
     @State private var showingProposeStanding = false
+    @State private var showingPaywall = false
     @State private var selectedDate = Date()
+
+    private static let freeStandingLimit = 1
+    private static let freePhotoImportLimit = 3
+
+    private var hasReachedStandingLimit: Bool {
+        guard !subscriptionStore.isPlus else { return false }
+        let mine = standingStore.arrangements.filter {
+            $0.ownerName == profileStore.profile.myName && ($0.status == .active || $0.status == .pending)
+        }
+        return mine.count >= Self.freeStandingLimit
+    }
+
+    private var hasReachedImportLimit: Bool {
+        !subscriptionStore.isPlus && profileStore.profile.photoImportsUsedCount >= Self.freePhotoImportLimit
+    }
 
     var body: some View {
         NavigationStack {
@@ -128,12 +145,20 @@ struct ScheduleView: View {
                             Label("Add Manually", systemImage: "pencil")
                         }
                         Button {
-                            showingImport = true
+                            if hasReachedImportLimit {
+                                showingPaywall = true
+                            } else {
+                                showingImport = true
+                            }
                         } label: {
                             Label("Import from Photo", systemImage: "camera.viewfinder")
                         }
                         Button {
-                            showingProposeStanding = true
+                            if hasReachedStandingLimit {
+                                showingPaywall = true
+                            } else {
+                                showingProposeStanding = true
+                            }
                         } label: {
                             Label("Propose Standing Time", systemImage: "repeat")
                         }
@@ -158,6 +183,9 @@ struct ScheduleView: View {
             }
             .sheet(isPresented: $showingProposeStanding) {
                 ProposeStandingArrangementView()
+            }
+            .sheet(isPresented: $showingPaywall) {
+                SubscriptionView()
             }
         }
     }

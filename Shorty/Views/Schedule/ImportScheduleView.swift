@@ -18,6 +18,7 @@ struct ImportScheduleView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProfileStore.self) private var profileStore
     @Environment(ScheduleStore.self) private var scheduleStore
+    @Environment(SubscriptionStore.self) private var subscriptionStore
 
     @State private var stage: Stage = .pickSource
     @State private var photosPickerItem: PhotosPickerItem?
@@ -186,6 +187,9 @@ struct ImportScheduleView: View {
                 block.startTime = entry.startTime
                 block.endTime = entry.endTime
                 await scheduleStore.save(block)
+            }
+            if !subscriptionStore.isPlus {
+                profileStore.profile.photoImportsUsedCount += 1
             }
             isSaving = false
             dismiss()

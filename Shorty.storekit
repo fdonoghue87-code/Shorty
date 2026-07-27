@@ -1,0 +1,65 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+
+    ]
+  },
+  "identifier" : "5A1B2C3D-0A0A-4A4A-9A9A-000000000001",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_billingIssuesEnabled" : false,
+    "_disableDialogView" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "5A1B2C3D-0A0A-4A4A-9A9A-000000000010",
+      "localizations" : [
+
+      ],
+      "name" : "Shorty Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "1.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "5A1B2C3D-0A0A-4A4A-9A9A-000000000011",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited standing arrangements and photo schedule imports.",
+              "displayName" : "Shorty Plus (Monthly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.fdonoghue.shorty.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Shorty Plus Monthly",
+          "subscriptionGroupID" : "5A1B2C3D-0A0A-4A4A-9A9A-000000000010",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

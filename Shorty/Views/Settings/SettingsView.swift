@@ -3,9 +3,11 @@ import UIKit
 
 struct SettingsView: View {
     @Environment(ProfileStore.self) private var profileStore
+    @Environment(SubscriptionStore.self) private var subscriptionStore
 
     @State private var showingLeaveConfirmation = false
     @State private var showingHowItWorks = false
+    @State private var showingSubscription = false
 
     var body: some View {
         NavigationStack {
@@ -13,6 +15,22 @@ struct SettingsView: View {
                 Section("Your Info") {
                     LabeledContent("Your name", value: profileStore.profile.myName)
                     LabeledContent("Roommate", value: profileStore.profile.roommateName ?? "—")
+                }
+
+                Section {
+                    Button {
+                        showingSubscription = true
+                    } label: {
+                        HStack {
+                            Label("Shorty Plus", systemImage: "sparkles")
+                            Spacer()
+                            if subscriptionStore.isPlus {
+                                Text("Subscribed")
+                                    .font(.shortyCaption)
+                                    .foregroundStyle(DukeTheme.available)
+                            }
+                        }
+                    }
                 }
 
                 Section {
@@ -53,6 +71,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingHowItWorks) {
                 HowItWorksView()
+            }
+            .sheet(isPresented: $showingSubscription) {
+                SubscriptionView()
             }
         }
     }

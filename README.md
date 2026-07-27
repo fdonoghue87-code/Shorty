@@ -14,6 +14,7 @@ A native iOS app (SwiftUI, iOS 17+):
 - **Settings** tab — see your name/roommate, jump to system notification settings, a "How Shorty Works" refresher (also shown once automatically after onboarding), and leave the room.
 - Local reminders (5-minutes-left / time's-up) for whoever currently has the room, so nobody has to babysit a clock.
 - Duke Blue (`#001A57`) color theme throughout, with bold centered headers on each tab, a real app icon (a door with a clock for a handle), and VoiceOver labels on icon-only controls.
+- **Shorty Plus** — an optional monthly subscription (StoreKit 2) unlocking unlimited standing arrangements (free: 1 active at a time) and unlimited photo schedule imports (free: 3 total). Deliberately built as a subscription rather than a cut of the peer-to-peer room-time payments — see "Monetization" below for why.
 
 ## How the sync works
 
@@ -50,6 +51,23 @@ When you're ready to test the actual two-person flow, enroll in the paid Develop
 1. You create the room and send the invite link to your roommate directly (text it to them outside the app, however you'd normally send a link).
 2. They tap it, accept, and enter their name.
 3. From there, send each other offers and see them sync.
+
+## Monetization
+
+Shorty deliberately never touches the money in the Venmo/Cash App/Apple Cash payment feature -- taking a cut there would mean becoming a real payment facilitator (Stripe Connect or similar), and the economics don't work at these transaction sizes: Stripe's ~2.9% + $0.30 fee alone eats a big chunk of a typical $5-20 "room time" payment, so a platform fee big enough to be worth collecting would have to be disproportionately large (~10%) relative to a favor between two people who could just use Venmo for free.
+
+Instead, monetization is a **Shorty Plus** subscription (StoreKit 2, `Services/SubscriptionStore.swift`) -- the standard, Apple-supported way to unlock app features, with none of the payment-facilitator compliance overhead. It gates two features to a free-tier limit (one active standing arrangement, three photo imports) rather than the core ask/accept/negotiate loop, since paywalling the actual tension-reduction the app exists for would undermine the whole point for two roommates just trying to coexist better.
+
+### Testing the subscription without any App Store Connect setup
+
+A local StoreKit configuration file (`Shorty.storekit`, repo root) defines the "Shorty Plus" monthly product entirely for local testing -- no App Store Connect product, no waiting, no real payment. To activate it:
+
+1. In Xcode: **Product menu → Scheme → Edit Scheme…**
+2. Select **Run** on the left, then the **Options** tab.
+3. Find **StoreKit Configuration** and choose `Shorty.storekit`.
+4. Run the app -- purchasing "Shorty Plus" now uses Xcode's StoreKit Testing environment (a sandboxed fake App Store), with test purchase confirmation dialogs and no real money involved.
+
+No new capability or entitlement is needed for this (unlike CloudKit/Push) -- StoreKit works without any Signing & Capabilities changes, so this feature doesn't add to the "re-pick your Team after pulling" friction. Going live for real eventually means creating the matching subscription product in App Store Connect with the same product ID (`com.fdonoghue.shorty.plus.monthly`) and price.
 
 ## After pulling an update to this project
 
