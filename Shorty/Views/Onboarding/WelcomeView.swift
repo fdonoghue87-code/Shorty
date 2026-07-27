@@ -1,5 +1,6 @@
 import CloudKit
 import SwiftUI
+import UIKit
 
 /// First-run screen. Handles both roles: the roommate who creates the room and
 /// invites the other, and the roommate who opens the invite link and just needs
@@ -13,6 +14,8 @@ struct WelcomeView: View {
     @State private var isCreating = false
     @State private var errorMessage: String?
     @State private var pendingShare: CKShareBox?
+    @State private var showingSystemShareSheet = false
+    @State private var didCopyLink = false
     @State private var cloudIsReady = CloudKitManager.shared.isReady
 
     var body: some View {
@@ -50,7 +53,9 @@ struct WelcomeView: View {
                         .foregroundStyle(DukeTheme.occupied)
                 }
 
-                if cloudIsReady {
+                if let box = pendingShare {
+                    inviteReadyCard(box)
+                } else if cloudIsReady {
                     PrimaryButton(title: "Continue", systemImage: "checkmark") {
                         profileStore.completeOnboarding(myName: myName, roommateName: roommateName)
                     }
@@ -63,7 +68,7 @@ struct WelcomeView: View {
                     .disabled(!canCreate)
                     .opacity(canCreate ? 1 : 0.5)
 
-                    Text("You'll get a share sheet to send \(roommateName.isEmpty ? "your roommate" : roommateName) a link over Messages. Already got a link from them instead? Just open it — you'll land right back here, connected.")
+                    Text("You'll get a link to send \(roommateName.isEmpty ? "your roommate" : roommateName). Already got a link from them instead? Just open it — you'll land right back here, connected.")
                         .font(.shortyCaption)
                         .foregroundStyle(DukeTheme.inkMuted)
                         .multilineTextAlignment(.center)
@@ -85,9 +90,9 @@ struct WelcomeView: View {
             .padding(20)
         }
         .shortyBackground()
-        .sheet(item: $pendingShare) { box in
-            CloudSharingView(share: box.share, container: box.container) {
-                profileStore.completeOnboarding(myName: myName, roommateName: roommateName)
+        .sheet(isPresented: $showingSystemShareSheet) {
+            if let box = pendingShare {
+                CloudSharingView(share: box.share, container: box.container) {}
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .shortyDidAcceptShare)) { _ in
@@ -114,6 +119,54 @@ struct WelcomeView: View {
             }
             isCreating = false
         }
+    }
+
+    @ViewBuilder
+    private func inviteReadyCard(_ box: CKShareBox) -> some View {
+        VStack(spacing: 14) {
+            ShortyCard {
+                Text("Room created 🎉")
+                    .font(.shortyHeadline)
+                Text("Send this link to \(roommateName.isEmpty ? "your roommate" : roommateName) however's easiest — text, AirDrop, email, anything.")
+                    .font(.shortyCaption)
+                    .foregroundStyle(DukeTheme.inkMuted)
+                if let url = box.share.url {
+                    Text(url.absoluteString)
+                        .font(.shortyCaption)
+                        .foregroundStyle(DukeTheme.dukeBlue)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+
+            PrimaryButton(title: didCopyLink ? "Copied!" : "Copy Invite Link", systemImage: didCopyLink ? "checkmark" : "doc.on.doc") {
+                copyLink(box)
+            }
+
+            SecondaryButton(title: "Share via Messages, Mail…", systemImage: "square.and.arrow.up") {
+                showingSystemShareSheet = true
+            }
+
+            Text("On the Simulator, Messages/Mail/AirDrop don't actually send — Copy Invite Link and paste it wherever the other device can open it (Notes, Safari, etc.). On a real device, either option works normally.")
+                .font(.shortyCaption)
+                .foregroundStyle(DukeTheme.inkMuted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+
+            PrimaryButton(title: "I've Sent It — Continue", systemImage: "checkmark") {
+                profileStore.completeOnboarding(myName: myName, roommateName: roommateName)
+            }
+        }
+    }
+
+    private func copyLink(_ box: CKShareBox) {
+        guard let url = box.share.url else {
+            errorMessage = "The link isn't ready quite yet — wait a second and try again."
+            return
+        }
+        UIPasteboard.general.string = url.absoluteString
+        didCopyLink = true
+        errorMessage = nil
     }
 
     private func exploreLocally() {
