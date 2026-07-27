@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct OfferDetailView: View {
     let offer: RentalOffer
@@ -48,6 +49,10 @@ struct OfferDetailView: View {
                         if let note = offer.counterStart != nil ? offer.counterNote : offer.note, !note.isEmpty {
                             DetailRow(label: "Note", value: note)
                         }
+                    }
+
+                    if let price = offer.activePrice, price > 0, offer.status == .accepted || offer.status == .completed {
+                        paymentCard(price: price)
                     }
 
                     if isCountering {
@@ -101,6 +106,59 @@ struct OfferDetailView: View {
                 }
             }
         }
+    }
+
+    /// Shorty never touches the money itself -- it just hands off to whatever payment
+    /// app the roommate already has, with the amount pre-filled where the app's URL
+    /// scheme allows it. The recipient still has to be picked manually since Shorty
+    /// doesn't collect Venmo/Cash App usernames or phone numbers.
+    @ViewBuilder
+    private func paymentCard(price: Double) -> some View {
+        ShortyCard {
+            if iAmSender {
+                Text("Send $\(Int(price)) to \(offer.toName)")
+                    .font(.shortyHeadline)
+                HStack(spacing: 10) {
+                    PaymentAppButton(title: "Venmo", systemImage: "dollarsign.circle.fill") {
+                        openVenmo(amount: price)
+                    }
+                    PaymentAppButton(title: "Cash App", systemImage: "dollarsign.square.fill") {
+                        openCashApp()
+                    }
+                    PaymentAppButton(title: "Apple Cash", systemImage: "message.fill") {
+                        openMessagesForApplePay()
+                    }
+                }
+                Text("Venmo opens with the amount pre-filled. For Cash App and Apple Cash, just pick \(offer.toName) and enter $\(Int(price)) once the app's open.")
+                    .font(.shortyCaption)
+                    .foregroundStyle(DukeTheme.inkMuted)
+            } else {
+                Text("Ask \(offer.fromName) to send you $\(Int(price)) via Venmo, Cash App, or Apple Cash.")
+                    .font(.shortyBody)
+                    .foregroundStyle(DukeTheme.inkMuted)
+            }
+        }
+    }
+
+    private func openVenmo(amount: Double) {
+        let amountString = String(format: "%.2f", amount)
+        let note = "Shorty room time".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Shorty"
+        guard let venmoURL = URL(string: "venmo://paycharge?txn=pay&amount=\(amountString)&note=\(note)") else { return }
+        UIApplication.shared.open(venmoURL, options: [:]) { success in
+            if !success, let fallback = URL(string: "https://venmo.com") {
+                UIApplication.shared.open(fallback)
+            }
+        }
+    }
+
+    private func openCashApp() {
+        guard let url = URL(string: "https://cash.app/") else { return }
+        UIApplication.shared.open(url)
+    }
+
+    private func openMessagesForApplePay() {
+        guard let url = URL(string: "sms:") else { return }
+        UIApplication.shared.open(url)
     }
 
     private var counterForm: some View {
@@ -181,5 +239,28 @@ private struct DetailRow: View {
             Spacer()
             Text(value).font(.shortyBody)
         }
+    }
+}
+
+private struct PaymentAppButton: View {
+    let title: String
+    let systemImage: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: systemImage)
+                    .font(.title3)
+                Text(title)
+                    .font(.shortyCaption)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .foregroundStyle(DukeTheme.dukeBlue)
+            .background(DukeTheme.dukeBlue.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 }
