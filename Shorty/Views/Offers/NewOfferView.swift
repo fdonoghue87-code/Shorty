@@ -22,7 +22,7 @@ struct NewOfferView: View {
             Form {
                 Section("What's it for?") {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                        ForEach(Purpose.allCases) { option in
+                        ForEach(Purpose.visibleCases) { option in
                             Button {
                                 purpose = option
                             } label: {

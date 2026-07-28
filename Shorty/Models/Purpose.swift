@@ -34,4 +34,12 @@ enum Purpose: String, CaseIterable, Identifiable, Codable {
         case .other: return "ellipsis.circle.fill"
         }
     }
+
+    /// The cases shown in pickers. `.intimacy` stays in the model (existing/future data
+    /// referencing it still decodes and displays fine) but is left out of the picker for
+    /// the family-testing round -- switch back to `Purpose.allCases` once testing is back
+    /// to just your actual roommate.
+    static var visibleCases: [Purpose] {
+        allCases.filter { $0 != .intimacy }
+    }
 }
