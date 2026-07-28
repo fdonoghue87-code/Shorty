@@ -1,3 +1,7 @@
+---
+title: Shorty Privacy Policy
+---
+
 # Shorty Privacy Policy
 
 _Last updated: July 2026_
