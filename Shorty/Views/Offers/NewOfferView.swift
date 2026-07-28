@@ -36,10 +36,9 @@ struct NewOfferView: View {
 
                 Section("When") {
                     DatePicker("Starts", selection: $start, in: Date()..., displayedComponents: [.date, .hourAndMinute])
+                }
 
-                    Text("How long")
-                        .font(.shortyCaption)
-                        .foregroundStyle(DukeTheme.inkMuted)
+                Section("How Long") {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(durations, id: \.self) { value in
                             Button {
@@ -58,7 +57,7 @@ struct NewOfferView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
 
                     if isCustomDuration {
                         Stepper(value: customDurationBinding, in: 5...720, step: 5) {
