@@ -26,9 +26,15 @@ final class OfferStore {
         offers.filter { $0.status == .pending || $0.status == .countered }
     }
 
+    /// Includes offers that were formally declined/completed/cancelled, plus accepted
+    /// offers whose window has simply passed without anyone tapping "End My Session Now"
+    /// -- otherwise those lapsed sessions never show up as upcoming *or* past.
     var history: [RentalOffer] {
-        offers.filter { [.declined, .completed, .cancelled].contains($0.status) }
-            .sorted { $0.createdAt > $1.createdAt }
+        offers.filter {
+            [.declined, .completed, .cancelled].contains($0.status)
+                || ($0.status == .accepted && $0.activeEnd < Date())
+        }
+        .sorted { $0.createdAt > $1.createdAt }
     }
 
     func refresh() async {

@@ -93,7 +93,7 @@ struct HomeView: View {
                 await standingStore.refresh()
             }
             .shortyBackground()
-            .shortyHeader("Shorty")
+            .shortyHeader("Hello, \(profileStore.profile.myName)")
             .sheet(isPresented: $showingNewOffer) {
                 NewOfferView()
             }

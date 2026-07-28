@@ -26,16 +26,35 @@ enum ScheduleImportService {
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         try handler.perform([request])
         let observations = request.results as? [VNRecognizedTextObservation] ?? []
-        return observations.compactMap { $0.topCandidates(1).first?.string }
+        // Vision doesn't guarantee reading order, especially for grid/table layouts --
+        // sorting by vertical position (Vision's coordinate origin is bottom-left, so
+        // higher y is higher up on screen) gets us much closer to top-to-bottom order,
+        // which the day-carryover logic in parse() depends on.
+        let sorted = observations.sorted { $0.boundingBox.origin.y > $1.boundingBox.origin.y }
+        return sorted.compactMap { $0.topCandidates(1).first?.string }
     }
 
+    /// Many real schedules put the day(s) on their own header line followed by several
+    /// time rows underneath (a common table layout), rather than repeating the day on
+    /// every line. So a line with a time but no day of its own inherits whatever day was
+    /// most recently seen, instead of only matching same-line day+time pairs.
     static func parse(lines: [String]) -> [DetectedScheduleEntry] {
-        lines.compactMap { line in
-            guard let (start, end) = extractTimeRange(from: line) else { return nil }
-            let weekdays = extractWeekdays(from: line)
+        var entries: [DetectedScheduleEntry] = []
+        var lastSeenWeekdays: Set<Weekday> = []
+
+        for line in lines {
+            let lineWeekdays = extractWeekdays(from: line)
+            if !lineWeekdays.isEmpty {
+                lastSeenWeekdays = lineWeekdays
+            }
+
+            guard let (start, end) = extractTimeRange(from: line) else { continue }
+            let weekdays = lineWeekdays.isEmpty ? lastSeenWeekdays : lineWeekdays
             let title = cleanedTitle(from: line)
-            return DetectedScheduleEntry(title: title, weekdays: weekdays, startTime: start, endTime: end)
+            entries.append(DetectedScheduleEntry(title: title, weekdays: weekdays, startTime: start, endTime: end))
         }
+
+        return entries
     }
 
     private static let timePattern =

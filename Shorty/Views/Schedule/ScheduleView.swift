@@ -48,7 +48,7 @@ struct ScheduleView: View {
                         }
                     }
                 } header: {
-                    Text("Today")
+                    Text("Today, \(todayDateLabel)")
                 }
 
                 let standingToShow = standingStore.pending + standingStore.active
@@ -192,6 +192,12 @@ struct ScheduleView: View {
 
     private var todaysBlocks: [ScheduleBlock] {
         scheduleStore.status(at: Date())
+    }
+
+    private var todayDateLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: Date())
     }
 
     private var selectedDateLabel: String {

@@ -9,44 +9,31 @@ struct OffersListView: View {
     var body: some View {
         NavigationStack {
             List {
-                let needsResponse = offerStore.needsMyResponse
-                if !needsResponse.isEmpty {
-                    Section("Needs a response") {
-                        ForEach(needsResponse) { offer in
-                            OfferRowView(offer: offer, myName: profileStore.profile.myName) {
-                                selectedOffer = offer
-                            }
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                            .listRowSeparator(.hidden)
-                        }
+                if !incoming.isEmpty {
+                    Section("Incoming") {
+                        offerRows(incoming)
+                    }
+                }
+
+                if !outbound.isEmpty {
+                    Section("Outbound") {
+                        offerRows(outbound)
                     }
                 }
 
                 if !offerStore.upcoming.isEmpty {
                     Section("Upcoming") {
-                        ForEach(offerStore.upcoming) { offer in
-                            OfferRowView(offer: offer, myName: profileStore.profile.myName) {
-                                selectedOffer = offer
-                            }
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                            .listRowSeparator(.hidden)
-                        }
+                        offerRows(offerStore.upcoming)
                     }
                 }
 
                 if !offerStore.history.isEmpty {
                     Section("Past") {
-                        ForEach(offerStore.history) { offer in
-                            OfferRowView(offer: offer, myName: profileStore.profile.myName) {
-                                selectedOffer = offer
-                            }
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                            .listRowSeparator(.hidden)
-                        }
+                        offerRows(offerStore.history)
                     }
                 }
 
-                if needsResponse.isEmpty && offerStore.upcoming.isEmpty && offerStore.history.isEmpty {
+                if incoming.isEmpty && outbound.isEmpty && offerStore.upcoming.isEmpty && offerStore.history.isEmpty {
                     EmptyStateView(systemImage: "envelope", title: "No offers yet", message: "Send one from the Room tab to get started.")
                         .listRowSeparator(.hidden)
                 }
@@ -59,6 +46,29 @@ struct OffersListView: View {
             .sheet(item: $selectedOffer) { offer in
                 OfferDetailView(offer: offer)
             }
+        }
+    }
+
+    /// Requests your roommate originated -- these are the ones most likely to need
+    /// your response (accept/decline/counter).
+    private var incoming: [RentalOffer] {
+        offerStore.needsMyResponse.filter { $0.fromName != profileStore.profile.myName }
+    }
+
+    /// Requests you sent -- shown separately so it's clear you're the one waiting,
+    /// not the one who owes a response.
+    private var outbound: [RentalOffer] {
+        offerStore.needsMyResponse.filter { $0.fromName == profileStore.profile.myName }
+    }
+
+    @ViewBuilder
+    private func offerRows(_ offers: [RentalOffer]) -> some View {
+        ForEach(offers) { offer in
+            OfferRowView(offer: offer, myName: profileStore.profile.myName) {
+                selectedOffer = offer
+            }
+            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+            .listRowSeparator(.hidden)
         }
     }
 }

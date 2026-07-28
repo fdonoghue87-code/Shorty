@@ -8,6 +8,8 @@ struct NewOfferView: View {
     @State private var purpose: Purpose = .study
     @State private var start = Date().addingTimeInterval(15 * 60)
     @State private var duration: TimeInterval = 60 * 60
+    @State private var isCustomDuration = false
+    @State private var customMinutes = 90
     @State private var wantsPrice = false
     @State private var price: Double = 5
     @State private var note = ""
@@ -41,14 +43,28 @@ struct NewOfferView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(durations, id: \.self) { value in
                             Button {
+                                isCustomDuration = false
                                 duration = value
                             } label: {
-                                DurationChip(label: label(for: value), isSelected: duration == value)
+                                DurationChip(label: label(for: value), isSelected: !isCustomDuration && duration == value)
                             }
                             .buttonStyle(.plain)
                         }
+                        Button {
+                            isCustomDuration = true
+                            duration = TimeInterval(customMinutes * 60)
+                        } label: {
+                            DurationChip(label: "Custom", isSelected: isCustomDuration)
+                        }
+                        .buttonStyle(.plain)
                     }
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+
+                    if isCustomDuration {
+                        Stepper(value: customDurationBinding, in: 5...720, step: 5) {
+                            Text("Custom: \(customDurationLabel)")
+                        }
+                    }
                 }
 
                 Section("Sweeten the deal (optional)") {
@@ -80,6 +96,24 @@ struct NewOfferView: View {
         if minutes < 60 { return "\(minutes) min" }
         let hours = minutes / 60
         return hours == 1 ? "1 hour" : "\(hours) hours"
+    }
+
+    private var customDurationBinding: Binding<Int> {
+        Binding(
+            get: { customMinutes },
+            set: { newValue in
+                customMinutes = newValue
+                duration = TimeInterval(newValue * 60)
+            }
+        )
+    }
+
+    private var customDurationLabel: String {
+        let hours = customMinutes / 60
+        let minutes = customMinutes % 60
+        if hours == 0 { return "\(minutes) min" }
+        if minutes == 0 { return hours == 1 ? "1 hour" : "\(hours) hours" }
+        return "\(hours)h \(minutes)m"
     }
 
     private func send() {
