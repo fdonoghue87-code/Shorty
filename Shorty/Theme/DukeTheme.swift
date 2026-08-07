@@ -1,21 +1,33 @@
 import SwiftUI
+import UIKit
 
 /// Duke-blue-forward color system and shared text styles for Shorty.
+/// Every color here is a dynamic (light/dark) provider, so the whole app adapts
+/// automatically -- text stays legible and surfaces invert properly -- whether dark
+/// mode comes from the system setting or the in-app appearance override.
 enum DukeTheme {
-    /// Official Duke Blue (Pantone 280 C).
-    static let dukeBlue = Color(red: 0 / 255, green: 26 / 255, blue: 87 / 255)
-    static let dukeBlueLight = Color(red: 0 / 255, green: 83 / 255, blue: 155 / 255)
-    static let dukeBlueDeep = Color(red: 0 / 255, green: 17 / 255, blue: 58 / 255)
+    private static func adaptive(light: (Double, Double, Double), dark: (Double, Double, Double)) -> Color {
+        Color(uiColor: UIColor { traits in
+            let (r, g, b) = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: r / 255, green: g / 255, blue: b / 255, alpha: 1)
+        })
+    }
 
-    static let paper = Color(red: 247 / 255, green: 248 / 255, blue: 250 / 255)
-    static let card = Color.white
-    static let ink = Color(red: 17 / 255, green: 20 / 255, blue: 26 / 255)
-    static let inkMuted = Color(red: 96 / 255, green: 102 / 255, blue: 112 / 255)
-    static let divider = Color(red: 227 / 255, green: 230 / 255, blue: 236 / 255)
+    /// Official Duke Blue (Pantone 280 C) in light mode; a lighter, more vivid blue in
+    /// dark mode so it stays legible as icon/text color against a dark background.
+    static let dukeBlue = adaptive(light: (0, 26, 87), dark: (94, 151, 246))
+    static let dukeBlueLight = adaptive(light: (0, 83, 155), dark: (140, 190, 255))
+    static let dukeBlueDeep = adaptive(light: (0, 17, 58), dark: (30, 60, 130))
 
-    static let available = Color(red: 33 / 255, green: 148 / 255, blue: 105 / 255)
-    static let occupied = Color(red: 196 / 255, green: 88 / 255, blue: 42 / 255)
-    static let pending = Color(red: 196 / 255, green: 148 / 255, blue: 26 / 255)
+    static let paper = adaptive(light: (247, 248, 250), dark: (10, 12, 18))
+    static let card = adaptive(light: (255, 255, 255), dark: (28, 30, 36))
+    static let ink = adaptive(light: (17, 20, 26), dark: (245, 246, 248))
+    static let inkMuted = adaptive(light: (96, 102, 112), dark: (162, 168, 178))
+    static let divider = adaptive(light: (227, 230, 236), dark: (58, 61, 70))
+
+    static let available = adaptive(light: (33, 148, 105), dark: (48, 189, 133))
+    static let occupied = adaptive(light: (196, 88, 42), dark: (224, 120, 72))
+    static let pending = adaptive(light: (196, 148, 26), dark: (224, 178, 50))
 
     static let cardCornerRadius: CGFloat = 20
     static let controlCornerRadius: CGFloat = 14

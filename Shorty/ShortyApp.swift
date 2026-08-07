@@ -36,6 +36,7 @@ struct ShortyApp: App {
                 .environment(subscriptionStore)
                 .environment(toastCenter)
                 .tint(DukeTheme.dukeBlue)
+                .preferredColorScheme(profileStore.profile.appearanceMode.colorScheme)
                 .task {
                     NotificationService.requestAuthorizationIfNeeded()
                 }

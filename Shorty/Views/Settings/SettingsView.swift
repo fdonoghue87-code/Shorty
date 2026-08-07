@@ -17,6 +17,15 @@ struct SettingsView: View {
                     LabeledContent("Roommate", value: profileStore.profile.roommateName ?? "—")
                 }
 
+                Section("Appearance") {
+                    Picker("Appearance", selection: appearanceModeBinding) {
+                        ForEach(AppearanceMode.allCases) { mode in
+                            Text(mode.label).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
                 Section {
                     Button {
                         showingSubscription = true
@@ -76,6 +85,13 @@ struct SettingsView: View {
                 SubscriptionView()
             }
         }
+    }
+
+    private var appearanceModeBinding: Binding<AppearanceMode> {
+        Binding(
+            get: { profileStore.profile.appearanceMode },
+            set: { profileStore.profile.appearanceMode = $0 }
+        )
     }
 
     private var appVersion: String {
