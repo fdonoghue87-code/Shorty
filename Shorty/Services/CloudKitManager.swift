@@ -226,4 +226,52 @@ final class CloudKitManager {
         }
         _ = try await currentDatabase().deleteRecord(withID: recordID)
     }
+
+    func fetchRecord(withID id: CKRecord.ID) async throws -> CKRecord {
+        if isLocalPreview {
+            guard let record = localPreviewStorage[id] else { throw NotReadyError() }
+            return record
+        }
+        return try await currentDatabase().record(for: id)
+    }
+
+    // MARK: - Push notifications for incoming requests
+
+    private static let incomingOfferSubscriptionID = "shorty-incoming-offer-subscription"
+
+    /// Registers (or re-registers, harmlessly) a CloudKit push subscription so this device
+    /// gets a system notification -- with Accept/Decline actions right on it -- the moment
+    /// a roommate sends a new request addressed to `myName`. No backend of our own: CloudKit
+    /// itself is the push provider, the same as everything else this app does.
+    func subscribeToIncomingOffers(myName: String) async throws {
+        guard !isLocalPreview else { return }
+        let db = try currentDatabase()
+
+        let predicate = NSPredicate(format: "toName == %@", myName)
+        let subscription = CKQuerySubscription(
+            recordType: Self.offerRecordType,
+            predicate: predicate,
+            subscriptionID: Self.incomingOfferSubscriptionID,
+            options: [.firesOnRecordCreation]
+        )
+
+        let info = CKSubscription.NotificationInfo()
+        info.alertBody = "New room time request -- tap to respond"
+        info.soundName = "default"
+        info.shouldBadge = true
+        info.category = "OFFER_REQUEST"
+        subscription.notificationInfo = info
+
+        _ = try await db.save(subscription)
+    }
+
+    /// Called when the recipient taps Accept/Decline directly on the push notification --
+    /// patches just the status fields on the existing record rather than needing a full
+    /// OfferStore instance, since this can run with no view hierarchy alive at all.
+    func respondToOffer(recordID: CKRecord.ID, accept: Bool) async throws {
+        let record = try await fetchRecord(withID: recordID)
+        record["statusRaw"] = (accept ? OfferStatus.accepted : OfferStatus.declined).rawValue as CKRecordValue
+        record["respondedAt"] = Date() as CKRecordValue
+        try await save(record)
+    }
 }

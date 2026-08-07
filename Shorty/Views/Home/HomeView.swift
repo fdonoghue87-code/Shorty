@@ -103,6 +103,12 @@ struct HomeView: View {
                 await scheduleStore.refresh()
                 await standingStore.refresh()
                 offerStore.startPolling()
+                if !CloudKitManager.shared.isLocalPreview {
+                    try? await CloudKitManager.shared.subscribeToIncomingOffers(myName: profileStore.profile.myName)
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .shortyOfferRespondedViaPush)) { _ in
+                Task { await offerStore.refresh() }
             }
             .onChange(of: effectiveStatus) { _, newStatus in
                 if newStatus.isOccupied, newStatus.occupantName == profileStore.profile.myName, let end = newStatus.sessionEnd {
