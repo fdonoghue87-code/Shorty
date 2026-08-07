@@ -4,6 +4,7 @@ struct NewOfferView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProfileStore.self) private var profileStore
     @Environment(OfferStore.self) private var offerStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var purpose: Purpose = .study
     @State private var start = Date().addingTimeInterval(15 * 60)
@@ -24,6 +25,7 @@ struct NewOfferView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(Purpose.visibleCases) { option in
                             Button {
+                                Haptics.tap()
                                 purpose = option
                             } label: {
                                 PurposeChip(purpose: option, isSelected: purpose == option)
@@ -42,6 +44,7 @@ struct NewOfferView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(durations, id: \.self) { value in
                             Button {
+                                Haptics.tap()
                                 isCustomDuration = false
                                 duration = value
                             } label: {
@@ -50,6 +53,7 @@ struct NewOfferView: View {
                             .buttonStyle(.plain)
                         }
                         Button {
+                            Haptics.tap()
                             isCustomDuration = true
                             duration = TimeInterval(customMinutes * 60)
                         } label: {
@@ -127,6 +131,8 @@ struct NewOfferView: View {
         Task {
             await offerStore.send(offer)
             isSending = false
+            Haptics.success()
+            toastCenter.show("Request sent to \(roommate)")
             dismiss()
         }
     }

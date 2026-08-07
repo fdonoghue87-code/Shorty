@@ -7,6 +7,7 @@ struct ProposeStandingArrangementView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProfileStore.self) private var profileStore
     @Environment(StandingArrangementStore.self) private var standingStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var title = ""
     @State private var purpose: Purpose = .study
@@ -28,6 +29,7 @@ struct ProposeStandingArrangementView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(Purpose.visibleCases) { option in
                             Button {
+                                Haptics.tap()
                                 purpose = option
                             } label: {
                                 PurposeChip(purpose: option, isSelected: purpose == option)
@@ -80,6 +82,8 @@ struct ProposeStandingArrangementView: View {
         Task {
             await standingStore.propose(arrangement)
             isSaving = false
+            Haptics.success()
+            toastCenter.show("Proposal sent to \(roommate)")
             dismiss()
         }
     }
@@ -93,6 +97,7 @@ private struct ProposalWeekdaySelector: View {
             ForEach(Weekday.allCases) { day in
                 let isSelected = selectedDays.contains(day)
                 Button {
+                    Haptics.tap()
                     if isSelected { selectedDays.remove(day) } else { selectedDays.insert(day) }
                 } label: {
                     Text(day.short.prefix(1))

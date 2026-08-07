@@ -4,6 +4,7 @@ struct AddScheduleBlockView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProfileStore.self) private var profileStore
     @Environment(ScheduleStore.self) private var scheduleStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var title = ""
     @State private var kind: ScheduleBlock.Kind = .away
@@ -74,6 +75,8 @@ struct AddScheduleBlockView: View {
         Task {
             await scheduleStore.save(block)
             isSaving = false
+            Haptics.success()
+            toastCenter.show("Added to schedule")
             dismiss()
         }
     }
@@ -87,6 +90,7 @@ private struct WeekdaySelector: View {
             ForEach(Weekday.allCases) { day in
                 let isSelected = selectedDays.contains(day)
                 Button {
+                    Haptics.tap()
                     if isSelected { selectedDays.remove(day) } else { selectedDays.insert(day) }
                 } label: {
                     Text(day.short.prefix(1))

@@ -24,6 +24,7 @@ struct ShortyApp: App {
     @State private var scheduleStore = ScheduleStore()
     @State private var standingStore = StandingArrangementStore()
     @State private var subscriptionStore = SubscriptionStore()
+    @State private var toastCenter = ToastCenter()
 
     var body: some Scene {
         WindowGroup {
@@ -33,6 +34,7 @@ struct ShortyApp: App {
                 .environment(scheduleStore)
                 .environment(standingStore)
                 .environment(subscriptionStore)
+                .environment(toastCenter)
                 .tint(DukeTheme.dukeBlue)
                 .task {
                     NotificationService.requestAuthorizationIfNeeded()

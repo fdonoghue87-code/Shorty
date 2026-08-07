@@ -7,6 +7,7 @@ struct OfferDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProfileStore.self) private var profileStore
     @Environment(OfferStore.self) private var offerStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var isCountering = false
     @State private var counterStart: Date
@@ -79,28 +80,29 @@ struct OfferDetailView: View {
         VStack(spacing: 10) {
             if iAmRecipient && (offer.status == .pending) {
                 PrimaryButton(title: "Accept", systemImage: "checkmark", isLoading: isWorking) {
-                    respond { await offerStore.accept(offer) }
+                    respond(toast: "Accepted") { await offerStore.accept(offer) }
                 }
                 SecondaryButton(title: "Propose Different Terms", systemImage: "arrow.left.arrow.right") {
+                    Haptics.tap()
                     isCountering = true
                 }
                 Button(role: .destructive) {
-                    respond { await offerStore.decline(offer) }
+                    respond(toast: "Declined", isWarning: true) { await offerStore.decline(offer) }
                 } label: {
                     Text("Decline").font(.shortyHeadline)
                 }
             } else if iAmSender && offer.status == .countered {
                 PrimaryButton(title: "Accept New Terms", systemImage: "checkmark", isLoading: isWorking) {
-                    respond { await offerStore.acceptCounter(offer) }
+                    respond(toast: "Accepted") { await offerStore.acceptCounter(offer) }
                 }
                 Button(role: .destructive) {
-                    respond { await offerStore.cancel(offer) }
+                    respond(toast: "Offer withdrawn", isWarning: true) { await offerStore.cancel(offer) }
                 } label: {
                     Text("Withdraw Offer").font(.shortyHeadline)
                 }
             } else if offer.status == .accepted, offer.isUpcoming || offer.isActiveNow {
                 Button(role: .destructive) {
-                    respond { await offerStore.cancel(offer) }
+                    respond(toast: "Rental cancelled", isWarning: true) { await offerStore.cancel(offer) }
                 } label: {
                     Text("Cancel Rental").font(.shortyHeadline)
                 }
@@ -179,7 +181,7 @@ struct OfferDetailView: View {
                 TextField("Why the change? (optional)", text: $counterNote, axis: .vertical)
             }
             PrimaryButton(title: "Send Counter", systemImage: "paperplane.fill", isLoading: isWorking) {
-                respond {
+                respond(toast: "Counter sent") {
                     await offerStore.counter(offer, start: counterStart, end: counterEnd, price: counterPrice, note: counterNote.isEmpty ? nil : counterNote)
                 }
             }
@@ -203,23 +205,27 @@ struct OfferDetailView: View {
     }
 
     private func applyQuickAdjust(_ shift: TimeInterval) {
+        Haptics.tap()
         let duration = counterEnd.timeIntervalSince(counterStart)
         counterStart = counterStart.addingTimeInterval(shift)
         counterEnd = counterStart.addingTimeInterval(duration)
     }
 
     private func applyTomorrowSameTime() {
+        Haptics.tap()
         let duration = counterEnd.timeIntervalSince(counterStart)
         guard let newStart = Calendar.current.date(byAdding: .day, value: 1, to: counterStart) else { return }
         counterStart = newStart
         counterEnd = newStart.addingTimeInterval(duration)
     }
 
-    private func respond(_ action: @escaping () async -> Void) {
+    private func respond(toast: String, isWarning: Bool = false, _ action: @escaping () async -> Void) {
         isWorking = true
         Task {
             await action()
             isWorking = false
+            isWarning ? Haptics.warning() : Haptics.success()
+            toastCenter.show(toast)
             dismiss()
         }
     }

@@ -5,6 +5,7 @@ struct ScheduleView: View {
     @Environment(ProfileStore.self) private var profileStore
     @Environment(StandingArrangementStore.self) private var standingStore
     @Environment(SubscriptionStore.self) private var subscriptionStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var showingAdd = false
     @State private var showingImport = false
@@ -58,9 +59,27 @@ struct ScheduleView: View {
                             StandingArrangementRow(
                                 arrangement: arrangement,
                                 myName: profileStore.profile.myName,
-                                onAccept: { Task { await standingStore.accept(arrangement) } },
-                                onDecline: { Task { await standingStore.decline(arrangement) } },
-                                onCancel: { Task { await standingStore.cancel(arrangement) } }
+                                onAccept: {
+                                    Task {
+                                        await standingStore.accept(arrangement)
+                                        Haptics.success()
+                                        toastCenter.show("Standing time accepted")
+                                    }
+                                },
+                                onDecline: {
+                                    Task {
+                                        await standingStore.decline(arrangement)
+                                        Haptics.warning()
+                                        toastCenter.show("Declined")
+                                    }
+                                },
+                                onCancel: {
+                                    Task {
+                                        await standingStore.cancel(arrangement)
+                                        Haptics.warning()
+                                        toastCenter.show("Standing time cancelled")
+                                    }
+                                }
                             )
                             .listRowInsets(EdgeInsets())
                             .listRowSeparator(.hidden)
@@ -80,6 +99,7 @@ struct ScheduleView: View {
                                 ScheduleBlockDetailRow(block: block)
                                     .swipeActions {
                                         Button(role: .destructive) {
+                                            Haptics.warning()
                                             Task { await scheduleStore.delete(block) }
                                         } label: {
                                             Label("Delete", systemImage: "trash")

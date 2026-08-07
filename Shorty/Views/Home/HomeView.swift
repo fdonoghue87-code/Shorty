@@ -5,6 +5,7 @@ struct HomeView: View {
     @Environment(OfferStore.self) private var offerStore
     @Environment(ScheduleStore.self) private var scheduleStore
     @Environment(StandingArrangementStore.self) private var standingStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var showingNewOffer = false
     @State private var pendingQuickDuration: TimeInterval?
@@ -163,14 +164,22 @@ struct HomeView: View {
         offer.purpose = .privateReason
         offer.requestedStart = start
         offer.requestedEnd = start.addingTimeInterval(duration)
-        Task { await offerStore.send(offer) }
+        Task {
+            await offerStore.send(offer)
+            Haptics.success()
+            toastCenter.show("Request sent to \(roommate)")
+        }
         pendingQuickDuration = nil
     }
 
     private func endMySessionEarly() {
         guard let offerID = offerStore.roomStatus.offerID,
               let offer = offerStore.offers.first(where: { $0.id == offerID }) else { return }
-        Task { await offerStore.markCompleted(offer) }
+        Task {
+            await offerStore.markCompleted(offer)
+            Haptics.success()
+            toastCenter.show("Session ended")
+        }
     }
 }
 

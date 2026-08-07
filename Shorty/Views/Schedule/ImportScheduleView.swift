@@ -19,6 +19,7 @@ struct ImportScheduleView: View {
     @Environment(ProfileStore.self) private var profileStore
     @Environment(ScheduleStore.self) private var scheduleStore
     @Environment(SubscriptionStore.self) private var subscriptionStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var stage: Stage = .pickSource
     @State private var photosPickerItem: PhotosPickerItem?
@@ -179,6 +180,7 @@ struct ImportScheduleView: View {
     private func save() {
         isSaving = true
         Task {
+            var savedCount = 0
             for entry in entries where entry.isIncluded {
                 var block = ScheduleBlock.draft(owner: profileStore.profile.myName)
                 block.title = entry.title
@@ -187,11 +189,14 @@ struct ImportScheduleView: View {
                 block.startTime = entry.startTime
                 block.endTime = entry.endTime
                 await scheduleStore.save(block)
+                savedCount += 1
             }
             if !subscriptionStore.isPlus {
                 profileStore.profile.photoImportsUsedCount += 1
             }
             isSaving = false
+            Haptics.success()
+            toastCenter.show(savedCount == 1 ? "1 block added" : "\(savedCount) blocks added")
             dismiss()
         }
     }
