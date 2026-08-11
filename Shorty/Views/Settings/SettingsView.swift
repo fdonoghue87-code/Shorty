@@ -4,10 +4,15 @@ import UIKit
 struct SettingsView: View {
     @Environment(ProfileStore.self) private var profileStore
     @Environment(SubscriptionStore.self) private var subscriptionStore
+    @Environment(PaymentHandleStore.self) private var paymentHandleStore
+    @Environment(ToastCenter.self) private var toastCenter
 
     @State private var showingLeaveConfirmation = false
     @State private var showingHowItWorks = false
     @State private var showingSubscription = false
+    @State private var venmoUsername = ""
+    @State private var cashtag = ""
+    @State private var isSavingHandles = false
 
     var body: some View {
         NavigationStack {
@@ -15,6 +20,23 @@ struct SettingsView: View {
                 Section("Your Info") {
                     LabeledContent("Your name", value: profileStore.profile.myName)
                     LabeledContent("Roommate", value: profileStore.profile.roommateName ?? "—")
+                }
+
+                Section {
+                    TextField("Venmo username (e.g. @yourname)", text: $venmoUsername)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField("Cash App $Cashtag (e.g. $yourname)", text: $cashtag)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    Button(isSavingHandles ? "Saving…" : "Save") {
+                        saveHandles()
+                    }
+                    .disabled(isSavingHandles)
+                } header: {
+                    Text("Payment Handles")
+                } footer: {
+                    Text("Optional. Saving these lets your roommate's Venmo/Cash App buttons jump straight to you with the amount pre-filled, instead of searching for you by hand. Only visible to your roommate.")
                 }
 
                 Section("Appearance") {
@@ -84,6 +106,30 @@ struct SettingsView: View {
             .sheet(isPresented: $showingSubscription) {
                 SubscriptionView()
             }
+            .task {
+                await paymentHandleStore.refresh()
+                loadHandleFields()
+            }
+        }
+    }
+
+    private func loadHandleFields() {
+        let handle = paymentHandleStore.handlesByName[profileStore.profile.myName] ?? .empty
+        venmoUsername = handle.venmoUsername ?? ""
+        cashtag = handle.cashtag ?? ""
+    }
+
+    private func saveHandles() {
+        isSavingHandles = true
+        let handle = PaymentHandle(
+            venmoUsername: venmoUsername.trimmingCharacters(in: .whitespaces).isEmpty ? nil : venmoUsername.trimmingCharacters(in: .whitespaces),
+            cashtag: cashtag.trimmingCharacters(in: .whitespaces).isEmpty ? nil : cashtag.trimmingCharacters(in: .whitespaces)
+        )
+        Task {
+            await paymentHandleStore.save(name: profileStore.profile.myName, handle: handle)
+            isSavingHandles = false
+            Haptics.success()
+            toastCenter.show("Payment handles saved")
         }
     }
 

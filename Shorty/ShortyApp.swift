@@ -73,6 +73,7 @@ struct ShortyApp: App {
     @State private var standingStore = StandingArrangementStore()
     @State private var subscriptionStore = SubscriptionStore()
     @State private var toastCenter = ToastCenter()
+    @State private var paymentHandleStore = PaymentHandleStore()
 
     var body: some Scene {
         WindowGroup {
@@ -83,6 +84,7 @@ struct ShortyApp: App {
                 .environment(standingStore)
                 .environment(subscriptionStore)
                 .environment(toastCenter)
+                .environment(paymentHandleStore)
                 .tint(DukeTheme.dukeBlue)
                 .preferredColorScheme(profileStore.profile.appearanceMode.colorScheme)
                 .task {

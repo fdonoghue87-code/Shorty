@@ -6,6 +6,7 @@ struct HomeView: View {
     @Environment(ScheduleStore.self) private var scheduleStore
     @Environment(StandingArrangementStore.self) private var standingStore
     @Environment(ToastCenter.self) private var toastCenter
+    @Environment(PaymentHandleStore.self) private var paymentHandleStore
 
     @State private var showingNewOffer = false
     @State private var pendingQuickDuration: TimeInterval?
@@ -103,6 +104,7 @@ struct HomeView: View {
                 await scheduleStore.refresh()
                 await standingStore.refresh()
                 offerStore.startPolling()
+                await paymentHandleStore.refresh()
                 if !CloudKitManager.shared.isLocalPreview {
                     try? await CloudKitManager.shared.subscribeToIncomingOffers(myName: profileStore.profile.myName)
                 }

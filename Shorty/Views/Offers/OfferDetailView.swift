@@ -8,6 +8,7 @@ struct OfferDetailView: View {
     @Environment(ProfileStore.self) private var profileStore
     @Environment(OfferStore.self) private var offerStore
     @Environment(ToastCenter.self) private var toastCenter
+    @Environment(PaymentHandleStore.self) private var paymentHandleStore
 
     @State private var isCountering = false
     @State private var counterStart: Date
@@ -72,6 +73,9 @@ struct OfferDetailView: View {
                     Button("Close") { dismiss() }
                 }
             }
+            .task {
+                await paymentHandleStore.refresh()
+            }
         }
     }
 
@@ -111,27 +115,31 @@ struct OfferDetailView: View {
     }
 
     /// Shorty never touches the money itself -- it just hands off to whatever payment
-    /// app the roommate already has, with the amount pre-filled where the app's URL
-    /// scheme allows it. The recipient still has to be picked manually since Shorty
-    /// doesn't collect Venmo/Cash App usernames or phone numbers.
+    /// app the roommate already has, with the amount (and, if the recipient saved one
+    /// in Settings, their Venmo/Cash App handle) pre-filled where each app's URL scheme
+    /// allows it.
     @ViewBuilder
     private func paymentCard(price: Double) -> some View {
         ShortyCard {
             if iAmSender {
+                let handle = paymentHandleStore.handlesByName[offer.toName]
                 Text("Send $\(Int(price)) to \(offer.toName)")
                     .font(.shortyHeadline)
                 HStack(spacing: 10) {
                     PaymentAppButton(title: "Venmo", systemImage: "dollarsign.circle.fill") {
-                        openVenmo(amount: price)
+                        Haptics.tap()
+                        openVenmo(amount: price, to: handle)
                     }
                     PaymentAppButton(title: "Cash App", systemImage: "dollarsign.square.fill") {
-                        openCashApp()
+                        Haptics.tap()
+                        openCashApp(amount: price, to: handle)
                     }
                     PaymentAppButton(title: "Apple Cash", systemImage: "message.fill") {
+                        Haptics.tap()
                         openMessagesForApplePay()
                     }
                 }
-                Text("Venmo opens with the amount pre-filled. For Cash App and Apple Cash, just pick \(offer.toName) and enter $\(Int(price)) once the app's open.")
+                Text(paymentHint(for: handle, price: price))
                     .font(.shortyCaption)
                     .foregroundStyle(DukeTheme.inkMuted)
             } else {
@@ -142,10 +150,34 @@ struct OfferDetailView: View {
         }
     }
 
-    private func openVenmo(amount: Double) {
+    /// Describes what's actually going to happen when the sender taps each button --
+    /// only Venmo and Cash App can be pre-addressed, and only once the recipient has
+    /// saved a handle for that specific app in their own Settings.
+    private func paymentHint(for handle: PaymentHandle?, price: Double) -> String {
+        let venmoKnown = handle?.venmoIsSet ?? false
+        let cashtagKnown = handle?.cashtagIsSet ?? false
+        if venmoKnown && cashtagKnown {
+            return "Venmo and Cash App both open ready to send to \(offer.toName) with the amount filled in. For Apple Cash, pick \(offer.toName) in Messages and enter $\(Int(price))."
+        } else if venmoKnown {
+            return "Venmo opens ready to send to \(offer.toName) with the amount filled in. \(offer.toName) hasn't added a Cash App tag yet -- for that and Apple Cash, pick them manually and enter $\(Int(price))."
+        } else if cashtagKnown {
+            return "Cash App opens ready to send to \(offer.toName) with the amount filled in. \(offer.toName) hasn't added a Venmo username yet -- for that and Apple Cash, pick them manually and enter $\(Int(price))."
+        } else {
+            return "Venmo opens with the amount pre-filled. For Cash App and Apple Cash, just pick \(offer.toName) and enter $\(Int(price)) once the app's open. (\(offer.toName) can save a Venmo/Cash App handle in Settings to skip this.)"
+        }
+    }
+
+    private func openVenmo(amount: Double, to handle: PaymentHandle?) {
         let amountString = String(format: "%.2f", amount)
         let note = "Shorty room time".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Shorty"
-        guard let venmoURL = URL(string: "venmo://paycharge?txn=pay&amount=\(amountString)&note=\(note)") else { return }
+        var urlString = "venmo://paycharge?txn=pay&amount=\(amountString)&note=\(note)"
+        if let username = handle?.venmoUsername?.trimmingCharacters(in: .whitespaces), !username.isEmpty {
+            let cleaned = username.hasPrefix("@") ? String(username.dropFirst()) : username
+            if let encoded = cleaned.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                urlString += "&recipients=\(encoded)"
+            }
+        }
+        guard let venmoURL = URL(string: urlString) else { return }
         UIApplication.shared.open(venmoURL, options: [:]) { success in
             if !success, let fallback = URL(string: "https://venmo.com") {
                 UIApplication.shared.open(fallback)
@@ -153,7 +185,16 @@ struct OfferDetailView: View {
         }
     }
 
-    private func openCashApp() {
+    private func openCashApp(amount: Double, to handle: PaymentHandle?) {
+        if let cashtag = handle?.cashtag?.trimmingCharacters(in: .whitespaces), !cashtag.isEmpty {
+            let cleaned = cashtag.hasPrefix("$") ? cashtag : "$\(cashtag)"
+            let amountString = String(format: "%.2f", amount)
+            if let encodedTag = cleaned.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+               let url = URL(string: "https://cash.app/\(encodedTag)/\(amountString)") {
+                UIApplication.shared.open(url)
+                return
+            }
+        }
         guard let url = URL(string: "https://cash.app/") else { return }
         UIApplication.shared.open(url)
     }

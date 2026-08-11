@@ -235,6 +235,13 @@ final class CloudKitManager {
         return try await currentDatabase().record(for: id)
     }
 
+    /// The shared Room record itself, for small pieces of state that belong to the pair as
+    /// a whole rather than to any single offer/schedule item -- e.g. payment handles.
+    func fetchRoomRecord() async throws -> CKRecord {
+        guard let roomRecordID else { throw NotReadyError() }
+        return try await fetchRecord(withID: roomRecordID)
+    }
+
     // MARK: - Push notifications for incoming requests
 
     private static let incomingOfferSubscriptionID = "shorty-incoming-offer-subscription"
