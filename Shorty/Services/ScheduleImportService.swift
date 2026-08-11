@@ -26,21 +26,48 @@ enum ScheduleImportService {
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         try handler.perform([request])
         let observations = request.results as? [VNRecognizedTextObservation] ?? []
-        // Vision doesn't guarantee reading order, especially for grid/table layouts --
-        // sorting by vertical position (Vision's coordinate origin is bottom-left, so
-        // higher y is higher up on screen) gets us much closer to top-to-bottom order,
-        // which the day-carryover logic in parse() depends on.
-        let sorted = observations.sorted { $0.boundingBox.origin.y > $1.boundingBox.origin.y }
-        return sorted.compactMap { $0.topCandidates(1).first?.string }
+
+        // A grid/table schedule (course | days | time | room, in separate columns) very
+        // often comes back from Vision as several *separate* observations at nearly the
+        // same height rather than one line of text -- so a course's title ends up with no
+        // time on its "line" and gets dropped, while the time's "line" has no title.
+        // Clustering observations into rows by vertical position (Vision's origin is
+        // bottom-left, so higher y is higher on screen), then reading each row
+        // left-to-right, reconstructs one line per table row instead.
+        struct Piece { let text: String; let box: CGRect }
+        let pieces: [Piece] = observations.compactMap { observation in
+            guard let text = observation.topCandidates(1).first?.string else { return nil }
+            return Piece(text: text, box: observation.boundingBox)
+        }
+
+        let rowTolerance: CGFloat = 0.02
+        var rows: [[Piece]] = []
+        for piece in pieces.sorted(by: { $0.box.origin.y > $1.box.origin.y }) {
+            if let anchor = rows.last?.first, abs(anchor.box.origin.y - piece.box.origin.y) <= rowTolerance {
+                rows[rows.count - 1].append(piece)
+            } else {
+                rows.append([piece])
+            }
+        }
+
+        return rows.map { row in
+            row.sorted { $0.box.origin.x < $1.box.origin.x }
+                .map(\.text)
+                .joined(separator: " ")
+        }
     }
 
     /// Many real schedules put the day(s) on their own header line followed by several
     /// time rows underneath (a common table layout), rather than repeating the day on
     /// every line. So a line with a time but no day of its own inherits whatever day was
-    /// most recently seen, instead of only matching same-line day+time pairs.
+    /// most recently seen, instead of only matching same-line day+time pairs. Likewise, a
+    /// course title that lands on its own line with no day or time of its own (row
+    /// clustering doesn't always merge perfectly) is remembered as a fallback title for
+    /// whichever day/time line comes next, instead of being silently dropped.
     static func parse(lines: [String]) -> [DetectedScheduleEntry] {
         var entries: [DetectedScheduleEntry] = []
         var lastSeenWeekdays: Set<Weekday> = []
+        var lastSeenTitle: String?
 
         for line in lines {
             let lineWeekdays = extractWeekdays(from: line)
@@ -48,10 +75,21 @@ enum ScheduleImportService {
                 lastSeenWeekdays = lineWeekdays
             }
 
-            guard let (start, end) = extractTimeRange(from: line) else { continue }
+            guard let (start, end) = extractTimeRange(from: line) else {
+                if lineWeekdays.isEmpty {
+                    let candidate = cleanedTitle(from: line)
+                    if candidate != "Class" { lastSeenTitle = candidate }
+                }
+                continue
+            }
+
             let weekdays = lineWeekdays.isEmpty ? lastSeenWeekdays : lineWeekdays
-            let title = cleanedTitle(from: line)
+            var title = cleanedTitle(from: line)
+            if title == "Class", let lastSeenTitle {
+                title = lastSeenTitle
+            }
             entries.append(DetectedScheduleEntry(title: title, weekdays: weekdays, startTime: start, endTime: end))
+            lastSeenTitle = nil
         }
 
         return entries
@@ -100,24 +138,40 @@ enum ScheduleImportService {
         "m": .monday, "t": .tuesday, "w": .wednesday, "r": .thursday, "f": .friday, "s": .saturday, "u": .sunday,
     ]
 
-    /// Looks for a full day name first (e.g. "Wednesday"), then falls back to the
-    /// registrar-style letter codes most schedules actually use (e.g. "MWF", "TR").
+    /// Three-letter day abbreviations (e.g. "Mon", "Wed", "Thu"), a format many registrar
+    /// systems use instead of, or alongside, the single-letter MTWRFSU codes.
+    private static let dayAbbreviations: [String: Weekday] = [
+        "mon": .monday, "tue": .tuesday, "tues": .tuesday, "wed": .wednesday,
+        "thu": .thursday, "thur": .thursday, "thurs": .thursday, "fri": .friday,
+        "sat": .saturday, "sun": .sunday,
+    ]
+
+    /// Looks for a full day name first (e.g. "Wednesday"), then three-letter abbreviations
+    /// (e.g. "Mon"), then registrar-style single-letter codes (e.g. "MWF", "TR") -- and,
+    /// for the letter-code case, collects every matching word on the line instead of
+    /// stopping at the first one, since some layouts list days as separate tokens ("M W F"
+    /// rather than "MWF").
     private static func extractWeekdays(from line: String) -> Set<Weekday> {
         let lower = line.lowercased()
         for (name, day) in dayNames where lower.contains(name) {
             return [day]
         }
 
+        var collected: Set<Weekday> = []
         let words = line.split(whereSeparator: { !$0.isLetter })
         for word in words {
             let lowerWord = word.lowercased()
+            if let abbreviated = dayAbbreviations[lowerWord] {
+                collected.insert(abbreviated)
+                continue
+            }
             guard (1...3).contains(lowerWord.count) else { continue }
             let matched = lowerWord.compactMap { dayCodes[$0] }
             if matched.count == lowerWord.count {
-                return Set(matched)
+                collected.formUnion(matched)
             }
         }
-        return []
+        return collected
     }
 
     private static func cleanedTitle(from line: String) -> String {
@@ -131,6 +185,7 @@ enum ScheduleImportService {
         let words = title.split(separator: " ").filter { word in
             let lower = word.lowercased()
             if dayNames.keys.contains(lower) { return false }
+            if dayAbbreviations.keys.contains(lower) { return false }
             if lower.count <= 3, lower.allSatisfy({ letterCodes.contains($0) }) { return false }
             return true
         }
