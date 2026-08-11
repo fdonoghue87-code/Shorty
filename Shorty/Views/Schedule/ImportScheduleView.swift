@@ -129,7 +129,9 @@ struct ImportScheduleView: View {
                 }
                 .padding(.horizontal, 40)
 
-                Text("Snap a photo of a printed or on-screen class schedule instead.")
+                Text(subscriptionStore.isPlus
+                     ? "Snap a photo of a printed or on-screen class schedule instead -- as a Shorty Plus subscriber, it's read by Shorty's AI-powered backend for better accuracy on messy layouts."
+                     : "Snap a photo of a printed or on-screen class schedule instead. Shorty Plus subscribers get AI-powered reading for better accuracy on messy table layouts.")
                     .font(.shortyCaption)
                     .foregroundStyle(DukeTheme.inkMuted)
                     .multilineTextAlignment(.center)
@@ -206,12 +208,23 @@ struct ImportScheduleView: View {
         }
     }
 
+    /// Shorty Plus subscribers get the photo routed to Shorty's AI-powered backend for
+    /// meaningfully better accuracy on messy table layouts; everyone else -- and Plus
+    /// subscribers too, if the network or the backend has a bad moment -- falls back to
+    /// the free, fully on-device Vision parser. Nobody ever sees an outright failure just
+    /// because the smarter path had a hiccup.
     private func scan(_ image: UIImage) {
         stage = .scanning
         Task {
             do {
-                let lines = try ScheduleImportService.recognizeText(in: image)
-                let detected = ScheduleImportService.parse(lines: lines)
+                var detected: [DetectedScheduleEntry] = []
+                if subscriptionStore.isPlus {
+                    detected = try? await SmartScheduleImportService.detectEntries(in: image)
+                }
+                if detected.isEmpty {
+                    let lines = try ScheduleImportService.recognizeText(in: image)
+                    detected = ScheduleImportService.parse(lines: lines)
+                }
                 if detected.isEmpty {
                     stage = .failed("Couldn't make out any day/time pairs in that photo. Try a clearer, well-lit shot, or add times manually instead.")
                 } else {

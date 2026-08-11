@@ -12,13 +12,13 @@ Shorty is a small, two-person app for coordinating shared room time between room
 
 - **Your name and your roommate's name.** Entered once during setup, used only to label who's who on requests and schedule entries.
 - **Room requests, negotiations, standing arrangements, and schedule entries.** Whatever you and your roommate create while using the app.
-- **Photos you choose to scan for the schedule-import feature.** These are processed entirely on your device using Apple's on-device Vision framework — the photo itself is never uploaded anywhere, including to Shorty's developer.
+- **Photos you choose to scan for the schedule-import feature.** For everyone, these are processed entirely on your device using Apple's on-device Vision framework by default — the photo itself is never uploaded anywhere. **Shorty Plus subscribers** get an additional, more accurate option: the photo is sent to Shorty's own small backend, which forwards it to Anthropic's Claude API to read it, and is not stored anywhere by either Shorty or Anthropic once a response is returned. If that step fails for any reason, Shorty automatically falls back to the on-device method instead.
 - **Calendar events, if you use the "Import from Calendar" feature.** Read directly from your device's Calendar app (whatever account it's synced to — Google, Outlook, iCloud) using Apple's EventKit framework, entirely on-device. Nothing is uploaded until you review and confirm which events to save as schedule entries.
 - **A Venmo username, Cash App $Cashtag, and/or Zelle phone/email, if you choose to add them in Settings.** Optional, and only used to help your roommate's payment buttons find you faster — see below.
 
 ## Where it's stored
 
-All of the above is stored in **Apple's iCloud (CloudKit)**, under your own personal iCloud account, in a private zone shared only between you and the one roommate you've paired with. Shorty has no backend server of its own and no database — there is no copy of your data anywhere except in Apple's infrastructure, accessible only to your and your roommate's own devices signed into your own iCloud accounts.
+All of the above (aside from the Shorty Plus photo-reading feature described above) is stored in **Apple's iCloud (CloudKit)**, under your own personal iCloud account, in a private zone shared only between you and the one roommate you've paired with. Shorty has no database of its own — there is no persistent copy of your data anywhere except in Apple's infrastructure, accessible only to your and your roommate's own devices signed into your own iCloud accounts. The one exception is the small backend used only for Shorty Plus's AI-powered photo reading: it exists solely to relay a photo to Claude's API and back, holds no user accounts or database, and doesn't retain anything after each request.
 
 ## What Shorty does not do
 
