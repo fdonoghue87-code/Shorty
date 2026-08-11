@@ -129,9 +129,7 @@ struct ImportScheduleView: View {
                 }
                 .padding(.horizontal, 40)
 
-                Text(subscriptionStore.isPlus
-                     ? "Snap a photo of a printed or on-screen class schedule instead -- as a Shorty Plus subscriber, it's read by Shorty's AI-powered backend for better accuracy on messy layouts."
-                     : "Snap a photo of a printed or on-screen class schedule instead. Shorty Plus subscribers get AI-powered reading for better accuracy on messy table layouts.")
+                Text("Snap a photo of a printed or on-screen class schedule instead -- it's read by Shorty's AI-powered backend for better accuracy on messy table layouts.")
                     .font(.shortyCaption)
                     .foregroundStyle(DukeTheme.inkMuted)
                     .multilineTextAlignment(.center)
@@ -208,19 +206,15 @@ struct ImportScheduleView: View {
         }
     }
 
-    /// Shorty Plus subscribers get the photo routed to Shorty's AI-powered backend for
-    /// meaningfully better accuracy on messy table layouts; everyone else -- and Plus
-    /// subscribers too, if the network or the backend has a bad moment -- falls back to
-    /// the free, fully on-device Vision parser. Nobody ever sees an outright failure just
-    /// because the smarter path had a hiccup.
+    /// Every photo is routed to Shorty's AI-powered backend first, for meaningfully better
+    /// accuracy on messy table layouts; if the network or the backend has a bad moment, it
+    /// falls back to the free, fully on-device Vision parser instead. Nobody ever sees an
+    /// outright failure just because the smarter path had a hiccup.
     private func scan(_ image: UIImage) {
         stage = .scanning
         Task {
             do {
-                var detected: [DetectedScheduleEntry] = []
-                if subscriptionStore.isPlus {
-                    detected = try? await SmartScheduleImportService.detectEntries(in: image)
-                }
+                var detected = (try? await SmartScheduleImportService.detectEntries(in: image)) ?? []
                 if detected.isEmpty {
                     let lines = try ScheduleImportService.recognizeText(in: image)
                     detected = ScheduleImportService.parse(lines: lines)
