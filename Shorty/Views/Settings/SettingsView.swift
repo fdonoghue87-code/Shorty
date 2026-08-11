@@ -82,6 +82,19 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Legal") {
+                    Button {
+                        UIApplication.shared.open(LegalLinks.privacyPolicy)
+                    } label: {
+                        Label("Privacy Policy", systemImage: "hand.raised")
+                    }
+                    Button {
+                        UIApplication.shared.open(LegalLinks.termsAndConditions)
+                    } label: {
+                        Label("Terms & Conditions", systemImage: "doc.text")
+                    }
+                }
+
                 Section {
                     Button(role: .destructive) {
                         showingLeaveConfirmation = true

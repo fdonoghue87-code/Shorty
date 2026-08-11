@@ -1,5 +1,6 @@
 import StoreKit
 import SwiftUI
+import UIKit
 
 /// The Shorty Plus paywall. Shown either from Settings or automatically when someone
 /// hits a free-tier limit (a second standing arrangement, a 4th schedule import).
@@ -60,6 +61,26 @@ struct SubscriptionView: View {
                             .font(.shortyCaption)
                             .foregroundStyle(DukeTheme.occupied)
                     }
+
+                    VStack(spacing: 6) {
+                        if let product = subscriptionStore.products.first {
+                            Text("Shorty Plus renews automatically every month at \(product.displayPrice) until you cancel. Manage or cancel anytime in your Apple ID account settings.")
+                                .font(.shortyCaption)
+                                .foregroundStyle(DukeTheme.inkMuted)
+                                .multilineTextAlignment(.center)
+                        }
+                        HStack(spacing: 16) {
+                            Button("Privacy Policy") {
+                                UIApplication.shared.open(LegalLinks.privacyPolicy)
+                            }
+                            Button("Terms & Conditions") {
+                                UIApplication.shared.open(LegalLinks.termsAndConditions)
+                            }
+                        }
+                        .font(.shortyCaption)
+                        .foregroundStyle(DukeTheme.dukeBlue)
+                    }
+                    .padding(.top, 4)
                 }
                 .padding(20)
             }
