@@ -40,7 +40,13 @@ enum ScheduleImportService {
             return Piece(text: text, box: observation.boundingBox)
         }
 
-        let rowTolerance: CGFloat = 0.02
+        // A fixed tolerance would be too loose on a zoomed-out photo (merging two real
+        // rows into one, scrambling which day/time belongs to which course) or too tight
+        // on a zoomed-in one (splitting a single row into two). Basing it on the median
+        // text height actually seen in this photo adapts to both.
+        let heights = pieces.map(\.box.height).sorted()
+        let medianHeight = heights.isEmpty ? 0.02 : heights[heights.count / 2]
+        let rowTolerance = medianHeight * 0.6
         var rows: [[Piece]] = []
         for piece in pieces.sorted(by: { $0.box.origin.y > $1.box.origin.y }) {
             if let anchor = rows.last?.first, abs(anchor.box.origin.y - piece.box.origin.y) <= rowTolerance {
@@ -123,9 +129,16 @@ enum ScheduleImportService {
     }
 
     private static func resolveHour(_ hour: Int, meridiem: String?) -> Int {
-        guard let meridiem else { return hour }
-        if meridiem == "pm" && hour < 12 { return hour + 12 }
-        if meridiem == "am" && hour == 12 { return 0 }
+        if let meridiem {
+            if meridiem == "pm" && hour < 12 { return hour + 12 }
+            if meridiem == "am" && hour == 12 { return 0 }
+            return hour
+        }
+        // No AM/PM marker at all on either end of the range -- common on grid schedules
+        // that only show it once per column, or not at all. Class schedules essentially
+        // never run 1-7 AM, so an unmarked hour in that range almost certainly means the
+        // afternoon/evening slot rather than the middle of the night.
+        if (1...7).contains(hour) { return hour + 12 }
         return hour
     }
 
