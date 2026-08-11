@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showingSubscription = false
     @State private var venmoUsername = ""
     @State private var cashtag = ""
+    @State private var zelleHandle = ""
     @State private var isSavingHandles = false
 
     var body: some View {
@@ -29,6 +30,10 @@ struct SettingsView: View {
                     TextField("Cash App $Cashtag (e.g. $yourname)", text: $cashtag)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                    TextField("Zelle phone or email", text: $zelleHandle)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.emailAddress)
                     Button(isSavingHandles ? "Saving…" : "Save") {
                         saveHandles()
                     }
@@ -36,7 +41,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Payment Handles")
                 } footer: {
-                    Text("Optional. Saving these lets your roommate's Venmo/Cash App buttons jump straight to you with the amount pre-filled, instead of searching for you by hand. Only visible to your roommate.")
+                    Text("Optional. Saving these lets your roommate's Venmo/Cash App buttons jump straight to you with the amount pre-filled, instead of searching for you by hand. Zelle has no such shortcut -- your roommate's app will just copy your Zelle info so they can paste it into their bank's app. Only visible to your roommate.")
                 }
 
                 Section("Appearance") {
@@ -119,13 +124,15 @@ struct SettingsView: View {
         let handle = paymentHandleStore.handlesByName[profileStore.profile.myName] ?? .empty
         venmoUsername = handle.venmoUsername ?? ""
         cashtag = handle.cashtag ?? ""
+        zelleHandle = handle.zelleHandle ?? ""
     }
 
     private func saveHandles() {
         isSavingHandles = true
         let handle = PaymentHandle(
             venmoUsername: venmoUsername.trimmingCharacters(in: .whitespaces).isEmpty ? nil : venmoUsername.trimmingCharacters(in: .whitespaces),
-            cashtag: cashtag.trimmingCharacters(in: .whitespaces).isEmpty ? nil : cashtag.trimmingCharacters(in: .whitespaces)
+            cashtag: cashtag.trimmingCharacters(in: .whitespaces).isEmpty ? nil : cashtag.trimmingCharacters(in: .whitespaces),
+            zelleHandle: zelleHandle.trimmingCharacters(in: .whitespaces).isEmpty ? nil : zelleHandle.trimmingCharacters(in: .whitespaces)
         )
         Task {
             await paymentHandleStore.save(name: profileStore.profile.myName, handle: handle)

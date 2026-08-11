@@ -117,7 +117,8 @@ struct OfferDetailView: View {
     /// Shorty never touches the money itself -- it just hands off to whatever payment
     /// app the roommate already has, with the amount (and, if the recipient saved one
     /// in Settings, their Venmo/Cash App handle) pre-filled where each app's URL scheme
-    /// allows it.
+    /// allows it. Zelle has no such scheme, so it just copies the recipient's saved
+    /// Zelle info to the clipboard instead.
     @ViewBuilder
     private func paymentCard(price: Double) -> some View {
         ShortyCard {
@@ -134,6 +135,10 @@ struct OfferDetailView: View {
                         Haptics.tap()
                         openCashApp(amount: price, to: handle)
                     }
+                    PaymentAppButton(title: "Zelle", systemImage: "z.circle.fill") {
+                        Haptics.tap()
+                        openZelle(to: handle)
+                    }
                     PaymentAppButton(title: "Apple Cash", systemImage: "message.fill") {
                         Haptics.tap()
                         openMessagesForApplePay()
@@ -143,28 +148,29 @@ struct OfferDetailView: View {
                     .font(.shortyCaption)
                     .foregroundStyle(DukeTheme.inkMuted)
             } else {
-                Text("Ask \(offer.fromName) to send you $\(Int(price)) via Venmo, Cash App, or Apple Cash.")
+                Text("Ask \(offer.fromName) to send you $\(Int(price)) via Venmo, Cash App, Zelle, or Apple Cash.")
                     .font(.shortyBody)
                     .foregroundStyle(DukeTheme.inkMuted)
             }
         }
     }
 
-    /// Describes what's actually going to happen when the sender taps each button --
-    /// only Venmo and Cash App can be pre-addressed, and only once the recipient has
-    /// saved a handle for that specific app in their own Settings.
+    /// Describes what's actually going to happen when the sender taps each button.
+    /// Only Venmo and Cash App can be pre-addressed with the amount filled in, and only
+    /// once the recipient has saved a handle for that specific app -- Zelle has no such
+    /// deep link, so it never counts as "ready" even when a handle is saved; Apple Cash
+    /// never does either.
     private func paymentHint(for handle: PaymentHandle?, price: Double) -> String {
-        let venmoKnown = handle?.venmoIsSet ?? false
-        let cashtagKnown = handle?.cashtagIsSet ?? false
-        if venmoKnown && cashtagKnown {
-            return "Venmo and Cash App both open ready to send to \(offer.toName) with the amount filled in. For Apple Cash, pick \(offer.toName) in Messages and enter $\(Int(price))."
-        } else if venmoKnown {
-            return "Venmo opens ready to send to \(offer.toName) with the amount filled in. \(offer.toName) hasn't added a Cash App tag yet -- for that and Apple Cash, pick them manually and enter $\(Int(price))."
-        } else if cashtagKnown {
-            return "Cash App opens ready to send to \(offer.toName) with the amount filled in. \(offer.toName) hasn't added a Venmo username yet -- for that and Apple Cash, pick them manually and enter $\(Int(price))."
-        } else {
-            return "Venmo opens with the amount pre-filled. For Cash App and Apple Cash, just pick \(offer.toName) and enter $\(Int(price)) once the app's open. (\(offer.toName) can save a Venmo/Cash App handle in Settings to skip this.)"
+        var readyApps: [String] = []
+        if handle?.venmoIsSet == true { readyApps.append("Venmo") }
+        if handle?.cashtagIsSet == true { readyApps.append("Cash App") }
+
+        if readyApps.isEmpty {
+            return "Venmo opens with the amount pre-filled. For Cash App, Zelle, or Apple Cash, just pick \(offer.toName) and enter $\(Int(price)) once the app's open. (\(offer.toName) can save handles in Settings to speed some of this up.)"
         }
+        let readyList = readyApps.joined(separator: " and ")
+        let verb = readyApps.count == 1 ? "opens" : "open"
+        return "\(readyList) \(verb) ready to send to \(offer.toName) with the amount filled in. For the others, pick \(offer.toName) manually and enter $\(Int(price))."
     }
 
     private func openVenmo(amount: Double, to handle: PaymentHandle?) {
@@ -197,6 +203,23 @@ struct OfferDetailView: View {
         }
         guard let url = URL(string: "https://cash.app/") else { return }
         UIApplication.shared.open(url)
+    }
+
+    /// Zelle -- unlike Venmo/Cash App -- publishes no deep-link API to pre-address a
+    /// payment or fill in an amount, and it isn't one single app: most banks handle it
+    /// inside their own app. The most honest, useful thing Shorty can do is copy the
+    /// recipient's saved Zelle info to the clipboard and let them paste it wherever
+    /// their bank's Zelle screen actually lives.
+    private func openZelle(to handle: PaymentHandle?) {
+        if let zelle = handle?.zelleHandle?.trimmingCharacters(in: .whitespaces), !zelle.isEmpty {
+            UIPasteboard.general.string = zelle
+            toastCenter.show("Copied \(offer.toName)'s Zelle info")
+        } else {
+            toastCenter.show("Zelle runs through your bank's own app -- ask \(offer.toName) for their Zelle info")
+        }
+        if let url = URL(string: "zellepay://") {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     }
 
     private func openMessagesForApplePay() {
