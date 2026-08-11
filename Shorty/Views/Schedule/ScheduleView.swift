@@ -11,7 +11,9 @@ struct ScheduleView: View {
     @State private var showingImport = false
     @State private var showingProposeStanding = false
     @State private var showingPaywall = false
-    @State private var selectedDate = Date()
+    /// Defaults to tomorrow, not today -- today's blocks are already shown up in the
+    /// "Today" section, so landing the calendar there on open would just repeat them.
+    @State private var selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
 
     private static let freeStandingLimit = 1
     private static let freePhotoImportLimit = 3
