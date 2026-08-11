@@ -99,42 +99,69 @@ struct ImportScheduleView: View {
     }
 
     private var pickSourceView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "camera.viewfinder")
-                .font(.system(size: 44))
-                .foregroundStyle(DukeTheme.dukeBlue)
+        ScrollView {
+            VStack(spacing: 20) {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.system(size: 44))
+                    .foregroundStyle(DukeTheme.dukeBlue)
 
-            Text("Snap a photo of a printed or on-screen class schedule and Shorty will try to pull out the days and times.")
-                .font(.shortyBody)
-                .foregroundStyle(DukeTheme.inkMuted)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+                Text("Pull your schedule in automatically instead of typing it block by block.")
+                    .font(.shortyBody)
+                    .foregroundStyle(DukeTheme.inkMuted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
 
-            if cameraIsAvailable {
-                PrimaryButton(title: "Take Photo", systemImage: "camera.fill") {
-                    showingCamera = true
+                PrimaryButton(title: "Import from Calendar", systemImage: "calendar.badge.clock") {
+                    importFromCalendar()
                 }
                 .padding(.horizontal, 20)
-            }
 
-            PhotosPicker(selection: $photosPickerItem, matching: .images) {
-                Text("Choose from Library")
-                    .font(.shortyHeadline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .foregroundStyle(DukeTheme.dukeBlue)
-                    .background(DukeTheme.dukeBlue.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
-            }
-            .padding(.horizontal, 20)
+                Text("Works with any calendar already synced to your phone -- Google, Outlook, iCloud -- through the Calendar app. Classes and other repeating events come in automatically; one-off events are skipped.")
+                    .font(.shortyCaption)
+                    .foregroundStyle(DukeTheme.inkMuted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
 
-            Text("You'll review and can edit everything it finds before anything is saved.")
-                .font(.shortyCaption)
-                .foregroundStyle(DukeTheme.inkMuted)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+                HStack {
+                    Rectangle().fill(DukeTheme.divider).frame(height: 1)
+                    Text("or").font(.shortyCaption).foregroundStyle(DukeTheme.inkMuted)
+                    Rectangle().fill(DukeTheme.divider).frame(height: 1)
+                }
+                .padding(.horizontal, 40)
+
+                Text("Snap a photo of a printed or on-screen class schedule instead.")
+                    .font(.shortyCaption)
+                    .foregroundStyle(DukeTheme.inkMuted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+
+                if cameraIsAvailable {
+                    SecondaryButton(title: "Take Photo", systemImage: "camera.fill") {
+                        showingCamera = true
+                    }
+                    .padding(.horizontal, 20)
+                }
+
+                PhotosPicker(selection: $photosPickerItem, matching: .images) {
+                    Text("Choose from Library")
+                        .font(.shortyHeadline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .foregroundStyle(DukeTheme.dukeBlue)
+                        .background(DukeTheme.dukeBlue.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
+                }
+                .padding(.horizontal, 20)
+
+                Text("Whichever way it comes in, you'll review and can edit everything before anything is saved.")
+                    .font(.shortyCaption)
+                    .foregroundStyle(DukeTheme.inkMuted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .shortyBackground()
     }
 
@@ -157,6 +184,26 @@ struct ImportScheduleView: View {
         .listStyle(.plain)
         .shortyBackground()
         .scrollContentBackground(.hidden)
+    }
+
+    private func importFromCalendar() {
+        stage = .scanning
+        Task {
+            do {
+                try await CalendarImportService.requestAccess()
+                let detected = try await CalendarImportService.detectRecurringEntries()
+                if detected.isEmpty {
+                    stage = .failed("Didn't find any repeating events in your calendar over the next 8 weeks. One-off events are skipped on purpose -- only things that happen more than once count as a predictable schedule. Try a photo instead, or add times manually.")
+                } else {
+                    entries = detected
+                    stage = .reviewing
+                }
+            } catch CalendarImportService.ImportError.accessDenied {
+                stage = .failed("Shorty needs Calendar access to import your schedule this way. You can allow it under Settings → Shorty → Calendars, then try again.")
+            } catch {
+                stage = .failed("Something went wrong reading your calendar: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func scan(_ image: UIImage) {

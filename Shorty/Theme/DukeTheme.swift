@@ -66,6 +66,21 @@ struct ShortyBackground: ViewModifier {
     }
 }
 
+/// Toolbar/navigation-bar chrome doesn't always re-resolve a dynamic `UIColor`-backed
+/// `Color` the same way ordinary view content does, which is what left "Hello, Finn"
+/// unreadable in dark mode even after DukeTheme's colors became dynamic -- reading
+/// `\.colorScheme` directly here sidesteps that and is guaranteed correct.
+private struct ShortyHeaderTitle: View {
+    let title: String
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        Text(title)
+            .font(.system(.title3, design: .rounded).weight(.bold))
+            .foregroundStyle(colorScheme == .dark ? Color.white : DukeTheme.ink)
+    }
+}
+
 extension View {
     func shortyBackground() -> some View {
         modifier(ShortyBackground())
@@ -78,9 +93,7 @@ extension View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text(title)
-                        .font(.system(.title3, design: .rounded).weight(.bold))
-                        .foregroundStyle(DukeTheme.ink)
+                    ShortyHeaderTitle(title: title)
                 }
             }
     }

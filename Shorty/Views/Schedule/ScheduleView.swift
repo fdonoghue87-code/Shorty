@@ -171,7 +171,7 @@ struct ScheduleView: View {
                                 showingImport = true
                             }
                         } label: {
-                            Label("Import from Photo", systemImage: "camera.viewfinder")
+                            Label("Import Schedule", systemImage: "square.and.arrow.down")
                         }
                         Button {
                             if hasReachedStandingLimit {

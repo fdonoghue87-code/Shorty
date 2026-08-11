@@ -2,7 +2,7 @@ import StoreKit
 import SwiftUI
 
 /// The Shorty Plus paywall. Shown either from Settings or automatically when someone
-/// hits a free-tier limit (a second standing arrangement, a 4th photo import).
+/// hits a free-tier limit (a second standing arrangement, a 4th schedule import).
 struct SubscriptionView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(SubscriptionStore.self) private var subscriptionStore
@@ -30,7 +30,7 @@ struct SubscriptionView: View {
                     ShortyCard {
                         BenefitRow(icon: "repeat", title: "Unlimited Standing Arrangements", detail: "Free includes one active standing arrangement at a time.")
                         Divider()
-                        BenefitRow(icon: "camera.viewfinder", title: "Unlimited Photo Schedule Imports", detail: "Free includes 3 photo imports total.")
+                        BenefitRow(icon: "square.and.arrow.down", title: "Unlimited Schedule Imports", detail: "Free includes 3 calendar or photo imports total.")
                     }
 
                     if subscriptionStore.isPlus {
