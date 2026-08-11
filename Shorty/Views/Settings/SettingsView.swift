@@ -93,6 +93,8 @@ struct SettingsView: View {
                     LabeledContent("Version", value: appVersion)
                 }
             }
+            .shortyBackground()
+            .scrollContentBackground(.hidden)
             .shortyHeader("Settings")
             .confirmationDialog("Leave this room?", isPresented: $showingLeaveConfirmation, titleVisibility: .visible) {
                 Button("Leave", role: .destructive) { leaveRoom() }

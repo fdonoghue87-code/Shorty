@@ -55,6 +55,8 @@ struct ProposeStandingArrangementView: View {
                     }
                 }
             }
+            .shortyBackground()
+            .scrollContentBackground(.hidden)
             .navigationTitle("Propose Standing Time")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

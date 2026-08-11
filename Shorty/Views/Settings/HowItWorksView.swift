@@ -15,7 +15,7 @@ struct HowItWorksView: View {
         Item(icon: "repeat", title: "Standing Arrangements", body: "Propose a recurring time slot in the Schedule tab. Once your roommate approves it, it repeats automatically — you never have to ask again."),
         Item(icon: "lock.fill", title: "Personal Time", body: "Don't want to say why? Pick \"Personal Time\" as the purpose instead of one of the specific reasons."),
         Item(icon: "arrow.left.arrow.right", title: "Negotiating", body: "Any request can be accepted, declined, or countered with different terms — including quick +15 min / +1 hour adjustments instead of retyping everything."),
-        Item(icon: "camera.viewfinder", title: "Photo Schedule Import", body: "Snap a photo of your class schedule on the Schedule tab and Shorty tries to pull out the times automatically — you always review before it saves."),
+        Item(icon: "square.and.arrow.down", title: "Schedule Import", body: "Pull your schedule in from your phone's calendar (Google, Outlook, iCloud) or snap a photo of a printed one on the Schedule tab — you always review before it saves."),
     ]
 
     var body: some View {
@@ -33,6 +33,8 @@ struct HowItWorksView: View {
                 }
                 .padding(.vertical, 4)
             }
+            .shortyBackground()
+            .scrollContentBackground(.hidden)
             .navigationTitle("How Shorty Works")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

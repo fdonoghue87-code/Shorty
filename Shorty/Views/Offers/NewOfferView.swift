@@ -80,6 +80,8 @@ struct NewOfferView: View {
                     TextField("Add a note for \(profileStore.profile.roommateName ?? "your roommate")", text: $note, axis: .vertical)
                 }
             }
+            .shortyBackground()
+            .scrollContentBackground(.hidden)
             .navigationTitle("Request Room Time")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

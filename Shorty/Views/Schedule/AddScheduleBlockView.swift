@@ -43,6 +43,8 @@ struct AddScheduleBlockView: View {
                     }
                 }
             }
+            .shortyBackground()
+            .scrollContentBackground(.hidden)
             .navigationTitle("Add to Schedule")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
