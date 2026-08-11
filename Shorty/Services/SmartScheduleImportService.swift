@@ -21,7 +21,8 @@ enum SmartScheduleImportService {
 
     private static let endpoint = URL(string: "https://shorty-schedule-backend.fdonoghue-shorty.workers.dev")!
     /// Must exactly match the SHARED_SECRET set on the Worker via `wrangler secret put`.
-    private static let sharedSecret = "REPLACE_WITH_YOUR_SHARED_SECRET"
+    /// Pulled from Secrets.swift, which .gitignore keeps out of the (public) repo.
+    private static let sharedSecret = Secrets.scheduleBackendSharedSecret
 
     static func detectEntries(in image: UIImage) async throws -> [DetectedScheduleEntry] {
         guard let jpegData = image.jpegData(compressionQuality: 0.7) else {

@@ -9,3 +9,6 @@ DerivedData/
 
 # macOS
 .DS_Store
+
+# Real secret values -- never commit this file. See Secrets.example.swift.
+Shorty/Services/Secrets.swift
