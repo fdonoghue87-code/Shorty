@@ -19,8 +19,7 @@ enum SmartScheduleImportService {
         }
     }
 
-    /// Replace with your deployed Cloudflare Worker URL (see Backend/README.md).
-    private static let endpoint = URL(string: "https://shorty-schedule-backend.YOUR-SUBDOMAIN.workers.dev")!
+    private static let endpoint = URL(string: "https://shorty-schedule-backend.fdonoghue-shorty.workers.dev")!
     /// Must exactly match the SHARED_SECRET set on the Worker via `wrangler secret put`.
     private static let sharedSecret = "REPLACE_WITH_YOUR_SHARED_SECRET"
 
