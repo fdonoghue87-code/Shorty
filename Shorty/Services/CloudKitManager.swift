@@ -82,7 +82,14 @@ final class CloudKitManager {
 
         let share = CKShare(rootRecord: roomRecord)
         share[CKShare.SystemFieldKey.title] = "Shorty: \(roomName)" as CKRecordValue
-        share.publicPermission = .none
+        // .none requires each participant to be explicitly added ahead of time by looking
+        // up their Apple ID -- fine for UICloudSharingController's native Messages/Mail
+        // flow (which does that lookup itself), but it breaks the "Copy Invite Link" and
+        // manual link-sharing paths entirely, since CloudKit then refuses anyone who
+        // wasn't pre-added, even with a valid link. .readWrite lets whoever actually has
+        // the link join, which is the security model this app already relies on (a link
+        // sent privately to exactly one intended roommate).
+        share.publicPermission = .readWrite
 
         let saveOp = CKModifyRecordsOperation(recordsToSave: [roomRecord, share], recordIDsToDelete: nil)
         saveOp.savePolicy = .allKeys
