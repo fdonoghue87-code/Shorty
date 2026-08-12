@@ -42,6 +42,7 @@ final class CloudKitManager {
     private let defaults = UserDefaults.standard
     private enum Keys {
         static let zoneOwnerName = "shorty.zoneOwnerName"
+        static let zoneName = "shorty.zoneName"
         static let roomRecordName = "shorty.roomRecordName"
         static let isOwner = "shorty.isOwner"
         static let isLocalPreview = "shorty.isLocalPreview"
@@ -63,7 +64,11 @@ final class CloudKitManager {
         let owner = defaults.bool(forKey: Keys.isOwner)
         isOwner = owner
         let zoneOwnerName = defaults.string(forKey: Keys.zoneOwnerName) ?? CKCurrentUserDefaultName
-        let zone = CKRecordZone.ID(zoneName: Self.zoneName, ownerName: zoneOwnerName)
+        // Falls back to the old fixed zone name for installs paired before rooms got their
+        // own unique zone -- their zone really is still named that, so this keeps existing
+        // working pairings from breaking.
+        let storedZoneName = defaults.string(forKey: Keys.zoneName) ?? Self.zoneName
+        let zone = CKRecordZone.ID(zoneName: storedZoneName, ownerName: zoneOwnerName)
         zoneID = zone
         roomRecordID = CKRecord.ID(recordName: recordName, zoneID: zone)
         database = owner ? container.privateCloudDatabase : container.sharedCloudDatabase
@@ -74,7 +79,13 @@ final class CloudKitManager {
     /// ready to be presented in a UICloudSharingController.
     func createRoomAndShare(roomName: String) async throws -> (share: CKShare, container: CKContainer) {
         let privateDB = container.privateCloudDatabase
-        let zone = CKRecordZone(zoneID: CKRecordZone.ID(zoneName: Self.zoneName, ownerName: CKCurrentUserDefaultName))
+        // A unique zone per room, rather than one fixed zone name reused across every room
+        // this account ever creates -- CloudKit's sharing model is built and tested around
+        // one independent zone per share (Apple's own sample code follows this pattern);
+        // reusing a zone across multiple, unrelated CKShares is what was actually behind
+        // the "owner stopped sharing" error a second/third room kept hitting.
+        let freshZoneName = "Room-\(UUID().uuidString)"
+        let zone = CKRecordZone(zoneID: CKRecordZone.ID(zoneName: freshZoneName, ownerName: CKCurrentUserDefaultName))
         _ = try await privateDB.save(zone)
 
         let roomRecord = CKRecord(recordType: Self.roomRecordType, recordID: CKRecord.ID(recordName: UUID().uuidString, zoneID: zone.zoneID))
@@ -108,7 +119,7 @@ final class CloudKitManager {
         roomRecordID = roomRecord.recordID
         database = privateDB
         isReady = true
-        persist(zoneOwnerName: CKCurrentUserDefaultName, roomRecordName: roomRecord.recordID.recordName, owner: true)
+        persist(zoneOwnerName: CKCurrentUserDefaultName, zoneName: freshZoneName, roomRecordName: roomRecord.recordID.recordName, owner: true)
 
         return (share, container)
     }
@@ -137,7 +148,7 @@ final class CloudKitManager {
         roomRecordID = rootRecordID
         database = container.sharedCloudDatabase
         isReady = true
-        persist(zoneOwnerName: rootRecordID.zoneID.ownerName, roomRecordName: rootRecordID.recordName, owner: false)
+        persist(zoneOwnerName: rootRecordID.zoneID.ownerName, zoneName: rootRecordID.zoneID.zoneName, roomRecordName: rootRecordID.recordName, owner: false)
     }
 
     /// Skips real CloudKit entirely: everything lives in memory on this one device, so
@@ -155,6 +166,7 @@ final class CloudKitManager {
     func forgetRoom() {
         defaults.removeObject(forKey: Keys.roomRecordName)
         defaults.removeObject(forKey: Keys.zoneOwnerName)
+        defaults.removeObject(forKey: Keys.zoneName)
         defaults.removeObject(forKey: Keys.isOwner)
         defaults.removeObject(forKey: Keys.isLocalPreview)
         isReady = false
@@ -165,8 +177,9 @@ final class CloudKitManager {
         database = nil
     }
 
-    private func persist(zoneOwnerName: String, roomRecordName: String, owner: Bool) {
+    private func persist(zoneOwnerName: String, zoneName: String, roomRecordName: String, owner: Bool) {
         defaults.set(zoneOwnerName, forKey: Keys.zoneOwnerName)
+        defaults.set(zoneName, forKey: Keys.zoneName)
         defaults.set(roomRecordName, forKey: Keys.roomRecordName)
         defaults.set(owner, forKey: Keys.isOwner)
     }
