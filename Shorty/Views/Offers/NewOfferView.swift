@@ -35,10 +35,12 @@ struct NewOfferView: View {
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("When") {
                     DatePicker("Starts", selection: $start, in: Date()..., displayedComponents: [.date, .hourAndMinute])
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("How Long") {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
@@ -69,6 +71,7 @@ struct NewOfferView: View {
                         }
                     }
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("Sweeten the deal (optional)") {
                     Toggle("Offer a price", isOn: $wantsPrice)
@@ -79,6 +82,7 @@ struct NewOfferView: View {
                     }
                     TextField("Add a note for \(profileStore.profile.roommateName ?? "your roommate")", text: $note, axis: .vertical)
                 }
+                .listRowBackground(DukeTheme.card)
             }
             .shortyBackground()
             .scrollContentBackground(.hidden)

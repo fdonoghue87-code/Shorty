@@ -33,6 +33,7 @@ struct HowItWorksView: View {
                 }
                 .padding(.vertical, 4)
             }
+            .listStyle(.plain)
             .shortyBackground()
             .scrollContentBackground(.hidden)
             .navigationTitle("How Shorty Works")

@@ -26,6 +26,7 @@ struct AddScheduleBlockView: View {
                     }
                     .pickerStyle(.segmented)
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("When") {
                     Toggle("Repeats weekly", isOn: $isRecurring)
@@ -42,6 +43,7 @@ struct AddScheduleBlockView: View {
                             .foregroundStyle(DukeTheme.occupied)
                     }
                 }
+                .listRowBackground(DukeTheme.card)
             }
             .shortyBackground()
             .scrollContentBackground(.hidden)

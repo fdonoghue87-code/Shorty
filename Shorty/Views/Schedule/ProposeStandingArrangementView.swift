@@ -24,6 +24,7 @@ struct ProposeStandingArrangementView: View {
                         .font(.shortyCaption)
                         .foregroundStyle(DukeTheme.inkMuted)
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("What's it for?") {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
@@ -40,10 +41,12 @@ struct ProposeStandingArrangementView: View {
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     TextField("Title (optional)", text: $title)
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("Which days") {
                     ProposalWeekdaySelector(selectedDays: $selectedDays)
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("Time") {
                     DatePicker("Starts", selection: $startTime, displayedComponents: .hourAndMinute)
@@ -54,6 +57,7 @@ struct ProposeStandingArrangementView: View {
                             .foregroundStyle(DukeTheme.occupied)
                     }
                 }
+                .listRowBackground(DukeTheme.card)
             }
             .shortyBackground()
             .scrollContentBackground(.hidden)

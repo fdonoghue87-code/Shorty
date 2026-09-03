@@ -22,6 +22,7 @@ struct SettingsView: View {
                     LabeledContent("Your name", value: profileStore.profile.myName)
                     LabeledContent("Roommate", value: profileStore.profile.roommateName ?? "—")
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section {
                     TextField("Venmo username (e.g. @yourname)", text: $venmoUsername)
@@ -43,6 +44,7 @@ struct SettingsView: View {
                 } footer: {
                     Text("Optional. Saving these lets your roommate's Venmo/Cash App buttons jump straight to you with the amount pre-filled, instead of searching for you by hand. Zelle has no such shortcut -- your roommate's app will just copy your Zelle info so they can paste it into their bank's app. Only visible to your roommate.")
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("Appearance") {
                     Picker("Appearance", selection: appearanceModeBinding) {
@@ -52,6 +54,7 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented)
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section {
                     Button {
@@ -68,6 +71,7 @@ struct SettingsView: View {
                         }
                     }
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section {
                     Button {
@@ -81,6 +85,7 @@ struct SettingsView: View {
                         Label("Notification Settings", systemImage: "bell")
                     }
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section("Legal") {
                     Button {
@@ -94,6 +99,7 @@ struct SettingsView: View {
                         Label("Terms & Conditions", systemImage: "doc.text")
                     }
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section {
                     Button(role: .destructive) {
@@ -106,10 +112,12 @@ struct SettingsView: View {
                          ? "You're in local preview mode — nothing is synced yet. Leaving just resets this device."
                          : "This disconnects this device from the shared room. Your roommate keeps their own access.")
                 }
+                .listRowBackground(DukeTheme.card)
 
                 Section {
                     LabeledContent("Version", value: appVersion)
                 }
+                .listRowBackground(DukeTheme.card)
             }
             .shortyBackground()
             .scrollContentBackground(.hidden)
