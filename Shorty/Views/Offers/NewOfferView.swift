@@ -154,7 +154,6 @@ private struct DurationChip: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .foregroundStyle(isSelected ? .white : DukeTheme.dukeBlue)
-            .background(isSelected ? DukeTheme.dukeBlue : DukeTheme.dukeBlue.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
+            .shortyChip(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous), isSelected: isSelected)
     }
 }

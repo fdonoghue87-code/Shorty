@@ -24,6 +24,7 @@ struct WelcomeView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "door.left.hand.closed")
                         .font(.system(size: 44))
+                        .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(DukeTheme.dukeBlue)
                     Text("Shorty")
                         .font(.shortyLargeTitle)

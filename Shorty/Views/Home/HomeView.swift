@@ -36,8 +36,7 @@ struct HomeView: View {
                                             .frame(maxWidth: .infinity)
                                             .padding(.vertical, 12)
                                             .foregroundStyle(DukeTheme.dukeBlue)
-                                            .background(DukeTheme.dukeBlue.opacity(0.08))
-                                            .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
+                                            .shortyChip(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -198,6 +197,7 @@ struct ScheduleBlockRow: View {
         ShortyCard {
             HStack {
                 Image(systemName: block.kind == .away ? "figure.walk.motion" : "person.fill")
+                    .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(DukeTheme.dukeBlue)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(block.title.isEmpty ? (block.kind == .away ? "Away" : "In the room") : block.title)

@@ -86,6 +86,19 @@ extension View {
         modifier(ShortyBackground())
     }
 
+    /// Outlined, bordered treatment for secondary buttons and unselected chips: a thin
+    /// colored border over the card surface, rather than the same flat colored-tint fill
+    /// repeated identically on every control in the app. `isSelected: true` instead fills
+    /// solid with `tint` and drops the border, matching the "chosen" state used
+    /// throughout. `shape` lets the same treatment work for rectangles, capsules, and
+    /// circles alike.
+    func shortyChip<S: InsettableShape>(_ shape: S, isSelected: Bool = false, tint: Color = DukeTheme.dukeBlue) -> some View {
+        self
+            .background(isSelected ? tint : DukeTheme.card)
+            .overlay(shape.strokeBorder(isSelected ? Color.clear : tint.opacity(0.45), lineWidth: 1.25))
+            .clipShape(shape)
+    }
+
     /// Bold, centered screen title sitting in the compact nav bar rather than a tall
     /// left-aligned large title.
     func shortyHeader(_ title: String) -> some View {

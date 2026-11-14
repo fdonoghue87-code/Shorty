@@ -103,6 +103,7 @@ struct ImportScheduleView: View {
             VStack(spacing: 20) {
                 Image(systemName: "square.and.arrow.down")
                     .font(.system(size: 44))
+                    .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(DukeTheme.dukeBlue)
 
                 Text("Pull your schedule in automatically instead of typing it block by block.")
@@ -148,8 +149,7 @@ struct ImportScheduleView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .foregroundStyle(DukeTheme.dukeBlue)
-                        .background(DukeTheme.dukeBlue.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
+                        .shortyChip(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
                 }
                 .padding(.horizontal, 20)
 

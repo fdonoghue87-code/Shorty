@@ -24,6 +24,7 @@ struct HowItWorksView: View {
                 HStack(alignment: .top, spacing: 14) {
                     Image(systemName: item.icon)
                         .font(.title3)
+                        .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(DukeTheme.dukeBlue)
                         .frame(width: 28)
                     VStack(alignment: .leading, spacing: 4) {

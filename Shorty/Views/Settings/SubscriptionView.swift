@@ -17,7 +17,7 @@ struct SubscriptionView: View {
                     VStack(spacing: 10) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 44))
-                            .foregroundStyle(DukeTheme.dukeBlue)
+                            .symbolRenderingMode(.multicolor)
                         Text("Shorty Plus")
                             .font(.shortyLargeTitle)
                             .foregroundStyle(DukeTheme.dukeBlue)
@@ -37,6 +37,7 @@ struct SubscriptionView: View {
                     if subscriptionStore.isPlus {
                         Label("You're subscribed to Shorty Plus", systemImage: "checkmark.seal.fill")
                             .font(.shortyHeadline)
+                            .symbolRenderingMode(.hierarchical)
                             .foregroundStyle(DukeTheme.available)
                     } else if let product = subscriptionStore.products.first {
                         PrimaryButton(title: "Subscribe — \(product.displayPrice)/month", systemImage: "sparkles", isLoading: isPurchasing) {
@@ -115,6 +116,7 @@ private struct BenefitRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
+                .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(DukeTheme.dukeBlue)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {

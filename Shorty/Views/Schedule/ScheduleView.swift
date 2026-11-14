@@ -241,6 +241,7 @@ struct ScheduleBlockDetailRow: View {
     var body: some View {
         HStack {
             Image(systemName: block.kind == .away ? "figure.walk.motion" : "person.fill")
+                .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(DukeTheme.dukeBlue)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
@@ -280,6 +281,7 @@ struct StandingArrangementRow: View {
         ShortyCard {
             HStack {
                 Image(systemName: "repeat")
+                    .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(DukeTheme.dukeBlue)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(arrangement.title.isEmpty ? arrangement.purpose.label : arrangement.title)

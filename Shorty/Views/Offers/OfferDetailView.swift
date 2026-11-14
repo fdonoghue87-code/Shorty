@@ -35,6 +35,7 @@ struct OfferDetailView: View {
                     ShortyCard {
                         HStack {
                             Image(systemName: offer.purpose.icon)
+                                .symbolRenderingMode(.hierarchical)
                                 .foregroundStyle(DukeTheme.dukeBlue)
                             Text(offer.purpose.label).font(.shortyHeadline)
                             Spacer()
@@ -262,8 +263,7 @@ struct OfferDetailView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .foregroundStyle(DukeTheme.dukeBlue)
-                .background(DukeTheme.dukeBlue.opacity(0.08))
-                .clipShape(Capsule())
+                .shortyChip(Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -322,14 +322,14 @@ private struct PaymentAppButton: View {
             VStack(spacing: 6) {
                 Image(systemName: systemImage)
                     .font(.title3)
+                    .symbolRenderingMode(.hierarchical)
                 Text(title)
                     .font(.shortyCaption)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .foregroundStyle(DukeTheme.dukeBlue)
-            .background(DukeTheme.dukeBlue.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
+            .shortyChip(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }

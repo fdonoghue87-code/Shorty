@@ -13,6 +13,7 @@ struct OfferRowView: View {
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: offer.purpose.icon)
                         .font(.title3)
+                        .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(DukeTheme.dukeBlue)
                         .frame(width: 28)
 

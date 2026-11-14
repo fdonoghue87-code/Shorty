@@ -14,6 +14,7 @@ struct PrimaryButton: View {
                     ProgressView().tint(.white)
                 } else if let systemImage {
                     Image(systemName: systemImage)
+                        .symbolRenderingMode(.hierarchical)
                 }
                 Text(title)
                     .font(.shortyHeadline)
@@ -38,14 +39,14 @@ struct SecondaryButton: View {
             HStack(spacing: 8) {
                 if let systemImage {
                     Image(systemName: systemImage)
+                        .symbolRenderingMode(.hierarchical)
                 }
                 Text(title).font(.shortyHeadline)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .foregroundStyle(DukeTheme.dukeBlue)
-            .background(DukeTheme.dukeBlue.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
+            .shortyChip(RoundedRectangle(cornerRadius: DukeTheme.controlCornerRadius, style: .continuous))
         }
     }
 }

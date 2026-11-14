@@ -101,8 +101,7 @@ private struct WeekdaySelector: View {
                         .font(.shortyCaption.bold())
                         .frame(width: 32, height: 32)
                         .foregroundStyle(isSelected ? .white : DukeTheme.dukeBlue)
-                        .background(isSelected ? DukeTheme.dukeBlue : DukeTheme.dukeBlue.opacity(0.08))
-                        .clipShape(Circle())
+                        .shortyChip(Circle(), isSelected: isSelected)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(day.fullName)

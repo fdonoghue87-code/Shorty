@@ -28,6 +28,7 @@ struct EmptyStateView: View {
         VStack(spacing: 10) {
             Image(systemName: systemImage)
                 .font(.system(size: 32))
+                .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(DukeTheme.dukeBlueLight)
             Text(title).font(.shortyHeadline)
             Text(message)
